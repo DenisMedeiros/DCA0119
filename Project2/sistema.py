@@ -21,7 +21,7 @@ MODE2_TIME = 60
 LIGHT_THRESHOLD = 40 # Value from 0 to 100.
 HIGH_LIGHT_WEIGHT = 0.5  # Value from 0 to 1.
 
-SDC_IP = '10.9.99.167'
+SDC_IP = '192.168.100.1'
 SDC_PORT = 18000
 LOCAL_IP = '0.0.0.0'
 LOCAL_PORT = 20000
@@ -30,7 +30,7 @@ LOCAL_PORT = 20000
 
 # Handles button interruption on falling edge.   
 def button_pressed(pin):
-    time.sleep(0.1) # debounce delay
+    time.sleep(0.2) # debounce delay
     if system.running:
         print '[button] The system has been stopped.' 
         system.stop()
@@ -169,23 +169,21 @@ class System:
         self.led_sensor.write(self.sensor_value/100.0)
         
     def set_dryer_pwm_duty(self):
-        
-        duty =  self.pwm_dryer
-        
-        # apply a weight based on sensor value.
-        if self.sensor_value > LIGHT_THRESHOLD:
-            duty *= HIGH_LIGHT_WEIGHT
-
-        self.led_dryer.write(duty/100.0) 
-        #print '[pwm] Dryer PWM: %d %%' %(duty) 
+        self.led_dryer.write(self.pwm_dryer/100.0) 
+        #print '[pwm] Dryer PWM: %d %%' %(self.pwm_dryer) 
         #print '[adc] Sensor value: %d %%' %(self.sensor_value)
         
         
     def calculate_pwm_dryer(self):
+       
        if self.mode == 1:
            self.pwm_dryer = system.dryer_mode1()
        elif self.mode == 2:
            self.pwm_dryer = system.dryer_mode2()
+           
+       if self.sensor_value > LIGHT_THRESHOLD:
+            self.pwm_dryer *= HIGH_LIGHT_WEIGHT
+           
 
     def __init__(self):
     
@@ -230,7 +228,7 @@ class System:
             status = '-'
         info = "%d;%d;%d%s" %(self.seconds, self.sensor_value, 
             self.pwm_dryer, status)
-            
+                
         self.sock.sendto(info, (SDC_IP, SDC_PORT))
         
     def adc_start(self):
