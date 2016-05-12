@@ -51,6 +51,7 @@ public slots:
 
     /* Handler timer timeout. */
     void handleTimeout(void);
+    void handleNewData(void);
 };
 
 
