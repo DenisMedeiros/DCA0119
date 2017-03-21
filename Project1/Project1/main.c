@@ -14,7 +14,7 @@
 circular_buffer USART_tx_buffer;
 circular_buffer USART_rx_buffer;
 
-unsigned char text[]  = "Denis Ricardo da Silva Medeiros\n";
+unsigned char text[]  = "x=30.0;v=50.0";
 
 int main(void)
 {
