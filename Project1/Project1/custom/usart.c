@@ -25,7 +25,7 @@ void USART_init(void)
 	
 }
 
-void USART_send_byte(unsigned char data)
+void USART_send_byte(char data)
 {
 	/* Wait for empty transmit buffer */
 	while(!(UCSR0A & (1 << UDRE0)));
@@ -41,7 +41,7 @@ void USART_send_string(char* string){
 	}
 }
 
-unsigned char USART_receive_byte(void)
+char USART_receive_byte(void)
 {
 	/* Wait for data to be received */
 	while (!(UCSR0A & (1 << RXC0)));
@@ -51,7 +51,7 @@ unsigned char USART_receive_byte(void)
 }
 
 
-unsigned char buffer_add(circular_buffer* buffer, unsigned char c)
+char buffer_add(circular_buffer* buffer, char c)
 {
 	uint8_t next_head_pos = (buffer->head_pos + 1) % BUFFER_SIZE;
 	if (next_head_pos != buffer->tail_pos) {
@@ -64,11 +64,11 @@ unsigned char buffer_add(circular_buffer* buffer, unsigned char c)
 	 else 
 	 {
 		/* There is no room left in the buffer */
-		return 255;
+		return 127;
 	 }
 }
 
-unsigned char buffer_remove(circular_buffer* buffer)
+char buffer_remove(circular_buffer* buffer)
 {
 	char c;
 	if (buffer->head_pos != buffer->tail_pos) {
@@ -79,11 +79,11 @@ unsigned char buffer_remove(circular_buffer* buffer)
 	} 
 	else 
 	{
-		return 255;
+		return 127;
 	}
 }
 
-unsigned char buffer_put_string(circular_buffer* buffer, unsigned char* string)
+char buffer_put_string(circular_buffer* buffer, char* string)
 {
 	while(*string != 0x00)
 	{
@@ -113,8 +113,8 @@ ISR(USART_RX_vect)
 
 ISR(USART_UDRE_vect)
 {
-	unsigned char c = buffer_remove(&USART_tx_buffer);
-	if(c == 255) {
+	char c = buffer_remove(&USART_tx_buffer);
+	if(c == 127) {
 		/* Disable interrupt */
 		UCSR0B &= ~(1 << UDRIE0);
 		return;

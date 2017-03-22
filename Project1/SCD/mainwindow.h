@@ -5,6 +5,7 @@
 #include "ui_about.h"
 #include <QtCharts>
 #include <QtSerialPort/QtSerialPort>
+#include "serialporthandler.h"
 
 using namespace QtCharts;
 
@@ -28,10 +29,9 @@ private:
     QChart *chartMode2;
     QChartView *chartView;
     QVBoxLayout *layout;
+    SerialPortHandler* sph;
 
-    QString getAtmegaSerialPort(void);
-    QByteArray readPort(QSerialPort *port);
-    void writePort(QSerialPort *port, const QByteArray &writeData);
+
 
 public slots:
     void about(void);

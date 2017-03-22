@@ -12,7 +12,6 @@
 #define BAUD 9600
 #define BAUD_PRESCALLER (((F_CPU / (BAUD * 16UL))) - 1)    //The formula that does all the required maths
 
-
 /* BUFFER_SIZE must be power of 2 */
 #define BUFFER_SIZE   64
 
@@ -31,15 +30,15 @@ extern circular_buffer USART_rx_buffer;
 
 /* USART functions */
 void USART_init(void);
-void USART_send_byte(unsigned char data);
-void USART_send_string(char* data);
-unsigned char USART_receive_byte (void);
+void USART_send_byte(char data);
+void USART_send_string(char* string);
+char USART_receive_byte (void);
 void USART_enable_tx_interrupt(void);
 
 /* Circular buffer functions */
-unsigned char buffer_add(circular_buffer* buffer, unsigned char c);
-unsigned char buffer_put_string(circular_buffer* buffer, unsigned char* string);
-unsigned char buffer_remove(circular_buffer* buffer);
+char buffer_add(circular_buffer* buffer, char c);
+char buffer_put_string(circular_buffer* buffer, char* string);
+char buffer_remove(circular_buffer* buffer);
 
 
 #endif /* USART_H_ */

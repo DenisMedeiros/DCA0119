@@ -25,10 +25,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    serialportreader.cpp
+    serialporthandler.cpp
 
 HEADERS  += mainwindow.h \
-    serialportreader.h
+    serialporthandler.h
 
 FORMS    += mainwindow.ui \
     about.ui

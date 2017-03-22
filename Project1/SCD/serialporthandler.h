@@ -8,7 +8,7 @@
 #include <QByteArray>
 
 
-class SerialPortReader : public QObject
+class SerialPortHandler : public QObject
 {
     Q_OBJECT
 
@@ -18,9 +18,20 @@ private:
     QTextStream *standardOutput;
     QTimer      *timer;
 
+    QString getAtmegaSerialPort(void);
+
 public:
-    explicit SerialPortReader(QSerialPort *_serialPort, QObject *parent = 0);
-    ~SerialPortReader();
+    explicit SerialPortHandler(QObject *parent = 0);
+     ~SerialPortHandler();
+
+    /* async */
+    bool startReadingWriting();
+    bool stopReadingWriting();
+
+    /* sync */
+    QByteArray readPort(QSerialPort *port);
+    int writeData(QByteArray data);
+
 
 signals:
 
