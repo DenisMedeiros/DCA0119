@@ -25,8 +25,8 @@ typedef struct
     volatile uint8_t tail_pos;
 } circular_buffer;
 
-extern circular_buffer USART_tx_buffer;
-extern circular_buffer USART_rx_buffer;
+extern volatile circular_buffer USART_tx_buffer;
+extern volatile circular_buffer USART_rx_buffer;
 
 /* USART functions */
 void USART_init(void);
@@ -36,9 +36,9 @@ char USART_receive_byte (void);
 void USART_enable_tx_interrupt(void);
 
 /* Circular buffer functions */
-char buffer_add(circular_buffer* buffer, char c);
-char buffer_put_string(circular_buffer* buffer, char* string);
-char buffer_remove(circular_buffer* buffer);
+char buffer_add(volatile circular_buffer* buffer, char c);
+char buffer_put_string(volatile circular_buffer* buffer, char* string);
+char buffer_remove(volatile circular_buffer* buffer);
 
 
 #endif /* USART_H_ */

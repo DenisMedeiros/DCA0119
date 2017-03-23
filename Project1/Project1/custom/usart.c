@@ -51,7 +51,7 @@ char USART_receive_byte(void)
 }
 
 
-char buffer_add(circular_buffer* buffer, char c)
+char buffer_add(volatile circular_buffer* buffer, char c)
 {
 	uint8_t next_head_pos = (buffer->head_pos + 1) % BUFFER_SIZE;
 	if (next_head_pos != buffer->tail_pos) {
@@ -64,11 +64,11 @@ char buffer_add(circular_buffer* buffer, char c)
 	 else 
 	 {
 		/* There is no room left in the buffer */
-		return 127;
+		return 255;
 	 }
 }
 
-char buffer_remove(circular_buffer* buffer)
+char buffer_remove(volatile circular_buffer* buffer)
 {
 	char c;
 	if (buffer->head_pos != buffer->tail_pos) {
@@ -79,11 +79,11 @@ char buffer_remove(circular_buffer* buffer)
 	} 
 	else 
 	{
-		return 127;
+		return 255;
 	}
 }
 
-char buffer_put_string(circular_buffer* buffer, char* string)
+char buffer_put_string(volatile circular_buffer* buffer, char* string)
 {
 	while(*string != 0x00)
 	{
@@ -97,13 +97,13 @@ char buffer_put_string(circular_buffer* buffer, char* string)
 	return 0;
 }
 
+/* Interrupts handlers */
+
 void USART_enable_tx_interrupt(void)
 {
 	 UCSR0B |= (1 << UDRIE0);
 }
 
-
-/* Interrupts handlers */
 ISR(USART_RX_vect)
 {
 	unsigned char c = UDR0;
@@ -113,11 +113,11 @@ ISR(USART_RX_vect)
 
 ISR(USART_UDRE_vect)
 {
-	char c = buffer_remove(&USART_tx_buffer);
-	if(c == 127) {
+	unsigned char c = buffer_remove(&USART_tx_buffer);
+	if(c == 255) {
 		/* Disable interrupt */
 		UCSR0B &= ~(1 << UDRIE0);
 		return;
 	}
-	UDR0 = c;	
+	UDR0 = c;
 }
