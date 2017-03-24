@@ -15,12 +15,14 @@ volatile circular_buffer USART_tx_buffer;
 volatile circular_buffer USART_rx_buffer;
 volatile uint32_t ticks = 0;
 
+volatile char t_s[8], x_s[8], v_s[8];
+volatile uint8_t t = 0, v = 0, x = 0;
+
 int main(void)
 {
 
 	sei(); // Enable the Global Interrupt Enable flag so that interrupts can be processed
 	
-	buffer_add(&USART_tx_buffer, '$');
 	USART_init(); // Initializes the USART
 	counters_init(); // Initializes the counters
 	

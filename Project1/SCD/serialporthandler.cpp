@@ -20,29 +20,18 @@ SerialPortHandler::SerialPortHandler(QObject *parent) : QObject(parent)
     serialPort->setStopBits(QSerialPort::OneStop);
 
     readData = new QByteArray();
-    standardOutput = new QTextStream(stdout);
-    timer = new QTimer();
+    buffer = new QBuffer(readData);
+    buffer->open(QBuffer::ReadWrite);
 
     connect(serialPort, &QSerialPort::readyRead, this, &SerialPortHandler::handleReadyRead);
     connect(serialPort, static_cast<void (QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error),
             this, &SerialPortHandler::handleError);
-    connect(timer, &QTimer::timeout, this, &SerialPortHandler::handleTimeout);
 
-}
 
-bool SerialPortHandler::startReadingWriting()
-{
-    if(serialPort->open(QIODevice::ReadWrite))
-    {
-        timer->start(5000);
-        return true;
-    }
-    return false;
 }
 
 bool SerialPortHandler::stopReadingWriting()
 {
-    timer->stop();
     serialPort->close();
     return true;
 }
@@ -51,34 +40,36 @@ SerialPortHandler::~SerialPortHandler()
 {
     delete serialPort;
     delete readData;
-    delete standardOutput;
-    delete timer;
+    delete buffer;
+}
+
+QString SerialPortHandler::getReadData()
+{
+    if(buffer->bytesAvailable() > 0)
+    {
+        return QString(buffer->readAll());
+    }
+    return QString("");
+}
+
+bool SerialPortHandler::startReadingWriting()
+{
+    if(serialPort->open(QSerialPort::ReadWrite)){
+        return true;
+    }
+
+    return false;
 }
 
 void SerialPortHandler::handleReadyRead()
 {
     readData->append(serialPort->readAll());
-
-    if (!timer->isActive())
-    {
-        timer->start(5000);
-    }
-}
-
-void SerialPortHandler::handleTimeout()
-{
-    if (readData->isEmpty()) {
-        *standardOutput << QObject::tr("No data was currently available for reading from port %1").arg(serialPort->portName()) << endl;
-    } else {
-        *standardOutput << QObject::tr("Data successfully received from port %1").arg(serialPort->portName()) << endl;
-        *standardOutput << *readData << endl;
-    }
 }
 
 void SerialPortHandler::handleError(QSerialPort::SerialPortError serialPortError)
 {
     if (serialPortError == QSerialPort::ReadError) {
-        *standardOutput << QObject::tr("An I/O error occurred while reading the data from port %1, error: %2").arg(serialPort->portName()).arg(serialPort->errorString()) << endl;
+        qDebug() << QObject::tr("An I/O error occurred while reading the data from port %1, error: %2").arg(serialPort->portName()).arg(serialPort->errorString()) << endl;
     }
 }
 
@@ -94,21 +85,6 @@ QString SerialPortHandler::getAtmegaSerialPort()
         }
     }
     return "";
-}
-
-QByteArray SerialPortHandler::readPort(QSerialPort *port)
-{
-    QByteArray readData;
-    /* Vou aguardar X ms, no caso 75, para ver os dados disponiveis e começar a leitura
-        (-1) não possuira timeout.
-    */
-    while (port->waitForReadyRead(75)) {
-        readData.append(port->readAll());
-    }
-
-    /* Descomentar a linha abaixo apenas para debug da recepçao serial */
-    //coutput << "RX data :> " << readData <<  endl;
-    return readData;
 }
 
 int SerialPortHandler::writeData(QByteArray data)

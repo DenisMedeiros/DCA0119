@@ -20,6 +20,8 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void nextPoint(float x, float y);
+    void bufferAdd(char c);
 
 private:
     Ui::MainWindow *ui;
@@ -31,10 +33,18 @@ private:
     QVBoxLayout *layout;
     SerialPortHandler* sph;
 
+    QByteArray  *serialBuffer;
 
+    QLineSeries *seriesLineMode1;
+    QLineSeries *seriesLineMode2;
+    QScatterSeries *seriesPointsMode1;
+    QScatterSeries *seriesPointsMode2;
+
+    QTimer *timer;
 
 public slots:
     void about(void);
+    void handleTimeout(void);
 };
 
 #endif // MAINWINDOW_H
