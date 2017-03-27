@@ -8,6 +8,7 @@
 #include "custom/usart.h"
 #include "custom/counters.h"
 #include "custom/digital.h"
+#include "custom/adc.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -21,6 +22,8 @@ volatile uint8_t t = 0, v = 0, x = 0;
 
 volatile uint8_t system_running = 0;
 
+volatile uint8_t sensor_value = 0;
+
 int main(void)
 {
 
@@ -29,6 +32,7 @@ int main(void)
 	USART_init(); // Initializes the USART
 	counters_init(); // Initializes the counters
 	digital_init(); // Initializes digital input and output
+	adc_init(); // Initializes the ADC
 	
     while (1) 
 	{

@@ -9,6 +9,7 @@
 
 #include <avr/interrupt.h>
 #include "counters.h"
+#include "adc.h"
 
 /*
  * PD0 - pull up button (interrupt)
@@ -43,6 +44,7 @@ ISR(INT0_vect)
 		system_running = 1;
 		counters_start();
 		buffer_add(&USART_tx_buffer, '+');
+		adc_start();
 	}
 	else
 	{
@@ -50,6 +52,7 @@ ISR(INT0_vect)
 		system_running = 0;
 		counters_stop();
 		buffer_add(&USART_tx_buffer, '-');
+		adc_stop();
 	}
 		
 	/* Inform o the SCD the status of the system (+ = running, - = stopped). */

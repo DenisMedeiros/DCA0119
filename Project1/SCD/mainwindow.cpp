@@ -64,14 +64,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if(sph->startReadingWriting())
     {
-
-        QString message(QString("Connected through the port %1.").arg(sph->getPortName()));
+        QString message(QString("Connected through the port %1 | System stopped").arg(sph->getPortName()));
         statusMessage->setText(message);
-
-        /*
-        statusBar()->showMessage("Connected");
-        */
-
     }
     else
     {
@@ -128,31 +122,44 @@ void MainWindow::handleTimeout()
     if(sph->isConnected())
     {
         QString bufferedData = sph->getReadData().trimmed();
-        QStringList dataSet = bufferedData.split("/");
+        QStringList dataSet = bufferedData.split("+");
 
         if(bufferedData.contains('-'))
         {
-            QMessageBox::information(
-                    this,
-                    "SCD",
-                    "User shut down the system."
-            );
-            QTimer::singleShot(0, this, SLOT(close()));
+            seriesLineMode1->clear();
+            ui->lineEditTime->setText(QString("0 sec"));
+            ui->lineEditSensor->setText(QString("0 %"));
+            ui->lineEditPWM->setText(QString("0 %"));
+
+            QString message(QString("Connected through the port %1 | System stopped").arg(sph->getPortName()));
+            statusMessage->setText(message);
+        } else if(bufferedData.contains('+'))
+        {
+            QString message(QString("Connected through the port %1 | System running").arg(sph->getPortName()));
+            statusMessage->setText(message);
+
         }
 
-        foreach(QString data, dataSet)
+        if(dataSet.size() > 1)
         {
-            QStringList valuesStr = data.split(";");
-            if(valuesStr.size() == 3) {
-                t = valuesStr[0].toInt();
-                v = valuesStr[1].toInt();
-                x = valuesStr[2].toInt();
-                seriesLineMode1->append(t,v);
-                seriesPointsMode1->append(t,v);
-                ui->lineEditTime->setText(QString("%1 sec").arg(QString::number(t)));
-                ui->lineEditSensor->setText(QString("%1 %").arg(QString::number(v)));
-                ui->lineEditPWM->setText(QString("%1 %").arg(QString::number(x)));
+            foreach(QString data, dataSet)
+            {
+                QStringList valuesStr = data.split(";");
+                if(valuesStr.size() == 3) {
+                    t = valuesStr[0].toInt();
+                    v = valuesStr[1].toInt();
+                    x = valuesStr[2].toInt();
+                    seriesLineMode1->append(t,v);
+                    seriesPointsMode1->append(t,v);
+                    ui->lineEditTime->setText(QString("%1 sec").arg(QString::number(t)));
+                    ui->lineEditSensor->setText(QString("%1 %").arg(QString::number(v)));
+                    ui->lineEditPWM->setText(QString("%1 %").arg(QString::number(x)));
+                }
             }
+        }
+        else
+        {
+            qDebug() << "System is stopped";
         }
     }
     else

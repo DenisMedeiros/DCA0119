@@ -39,7 +39,8 @@ ISR(TIMER0_OVF_vect)
 			buffer_put_string(&USART_tx_buffer, (char*) x_s);
 			buffer_add(&USART_tx_buffer, ';');
 			buffer_put_string(&USART_tx_buffer, (char*) v_s);
-			buffer_add(&USART_tx_buffer, '/');
+			buffer_add(&USART_tx_buffer, '+');
+			
 		
 			USART_enable_tx_interrupt();
 			ticks = 0;
