@@ -46,8 +46,6 @@ private:
 public slots:
     void about(void);
     void handleTimeout(void);
-
-    void newConnection(void);
 };
 
 

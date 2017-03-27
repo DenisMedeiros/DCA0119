@@ -6,9 +6,9 @@
  */ 
 
 #include "digital.h"
-#include "usart.h"
 
 #include <avr/interrupt.h>
+#include "counters.h"
 
 /*
  * PD0 - pull up button (interrupt)
@@ -37,24 +37,22 @@ void digital_init(void)
 
 ISR(INT0_vect)
 {
-	extern volatile circular_buffer USART_tx_buffer;
-
-	if(!led1_on)
+	if(!system_running)
 	{
 		PORTB |= (1 << PORTB2);
-		led1_on = 1;
+		system_running = 1;
+		counters_start();
+		buffer_add(&USART_tx_buffer, '+');
 	}
 	else
 	{
 		PORTB &= ~(1 << PORTB2);
-		led1_on = 0;
+		system_running = 0;
+		counters_stop();
+		buffer_add(&USART_tx_buffer, '-');
 	}
-	
-	
-
-	/* Circular buffer functions */
-	buffer_add(&USART_tx_buffer, '0' + led1_on);
-	
+		
+	/* Inform o the SCD the status of the system (+ = running, - = stopped). */
 	USART_enable_tx_interrupt();
 	
 }

@@ -17,6 +17,10 @@ extern volatile uint32_t ticks;
 extern volatile char t_s[8], x_s[8], v_s[8];
 extern volatile uint8_t t, v, x;
 
+extern volatile uint8_t system_running;
+
 void counters_init(void);
+void counters_stop(void);
+void counters_start(void);
 
 #endif /* COUNTERS_H_ */

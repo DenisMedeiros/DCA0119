@@ -29,8 +29,6 @@ SerialPortHandler::SerialPortHandler(QObject *parent) : QObject(parent)
     connect(serialPort, &QSerialPort::readyRead, this, &SerialPortHandler::handleReadyRead);
     connect(serialPort, static_cast<void (QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error),
             this, &SerialPortHandler::handleError);
-    connect(serialPort, SIGNAL(channelReadyRead(int)), this, SLOT(handleStateChange()));
-
 
 }
 
@@ -80,7 +78,6 @@ bool SerialPortHandler::isConnected()
 
 void SerialPortHandler::handleReadyRead()
 {
-    qDebug() << "Chegou dados";
     readData->append(serialPort->readAll());
 }
 
@@ -89,11 +86,6 @@ void SerialPortHandler::handleError(QSerialPort::SerialPortError serialPortError
     if (serialPortError == QSerialPort::ReadError) {
         qDebug() << QObject::tr("An I/O error occurred while reading the data from port %1, error: %2").arg(serialPort->portName()).arg(serialPort->errorString()) << endl;
     }
-}
-
-void SerialPortHandler::handleStateChange()
-{
-    qDebug() << "Conectou";
 }
 
 QString SerialPortHandler::getAtmegaSerialPort()

@@ -39,7 +39,6 @@ signals:
 private slots:
     void handleReadyRead();
     void handleError(QSerialPort::SerialPortError error);
-    void handleStateChange();
 
 public slots:
 };

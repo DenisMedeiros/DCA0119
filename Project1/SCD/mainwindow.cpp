@@ -70,12 +70,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
         /*
         statusBar()->showMessage("Connected");
-        QMessageBox::information(
-                this,
-                tr("SCD"),
-                tr("Couldn't connect to the microcontroller!")
-        );
-        QTimer::singleShot(0, this, SLOT(close()));
         */
 
     }
@@ -131,11 +125,20 @@ void MainWindow::handleTimeout()
 {
     int t = 0, v = 0, x = 0;
 
-
     if(sph->isConnected())
     {
         QString bufferedData = sph->getReadData().trimmed();
         QStringList dataSet = bufferedData.split("/");
+
+        if(bufferedData.contains('-'))
+        {
+            QMessageBox::information(
+                    this,
+                    "SCD",
+                    "User shut down the system."
+            );
+            QTimer::singleShot(0, this, SLOT(close()));
+        }
 
         foreach(QString data, dataSet)
         {
@@ -161,10 +164,4 @@ void MainWindow::handleTimeout()
     timer->start(TIMER_VALUE);
 
 }
-
-void MainWindow::newConnection()
-{
-    qDebug() << "New connection";
-}
-
 

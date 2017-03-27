@@ -35,6 +35,7 @@ void USART_send_string(char* string);
 char USART_receive_byte (void);
 void USART_enable_tx_interrupt(void);
 
+
 /* Circular buffer functions */
 char buffer_add(volatile circular_buffer* buffer, char c);
 char buffer_put_string(volatile circular_buffer* buffer, char* string);

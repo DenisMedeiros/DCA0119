@@ -15,7 +15,7 @@ void USART_init(void)
 	UBRR0L = (unsigned char) (BAUD_PRESCALLER);
 	
 	/* Enable receiver and transmitter */
-	UCSR0B = (1 << RXEN0) | (1 << TXEN0);
+	UCSR0B |= (1 << RXEN0) | (1 << TXEN0);
 	
 	/* Enable interruptions for reception */
 	UCSR0B |= (1 << RXCIE0) | (1 << UDRIE0);

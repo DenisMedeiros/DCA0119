@@ -10,10 +10,11 @@
 #define DIGITAL_H_
 
 #include <avr/io.h>
+#include "usart.h"
 
-extern volatile uint8_t led1_on;
+extern volatile circular_buffer USART_tx_buffer;
+extern volatile uint8_t system_running;
 
 void digital_init(void);
-
 
 #endif /* DIGITAL_H_ */

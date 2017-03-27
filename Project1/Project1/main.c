@@ -19,7 +19,7 @@ volatile uint32_t ticks = 0;
 volatile char t_s[8], x_s[8], v_s[8];
 volatile uint8_t t = 0, v = 0, x = 0;
 
-volatile uint8_t led1_on = 0;
+volatile uint8_t system_running = 0;
 
 int main(void)
 {
@@ -27,8 +27,8 @@ int main(void)
 	sei(); // Enable the Global Interrupt Enable flag so that interrupts can be processed
 	
 	USART_init(); // Initializes the USART
-	//counters_init(); // Initializes the counters
-	digital_init();
+	counters_init(); // Initializes the counters
+	digital_init(); // Initializes digital input and output
 	
     while (1) 
 	{
