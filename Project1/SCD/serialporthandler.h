@@ -5,6 +5,7 @@
 #include <QtSerialPort/QSerialPort>
 #include <QByteArray>
 #include <QBuffer>
+#include <QTimer>
 
 class SerialPortHandler : public QObject
 {
@@ -14,6 +15,8 @@ private:
     QSerialPort *serialPort;
     QByteArray  *readData;
     QBuffer *buffer;
+    QString *portName;
+    QTimer *timer;
 
     QString getAtmegaSerialPort(void);
 
@@ -21,7 +24,9 @@ public:
     explicit SerialPortHandler(QObject *parent = 0);
      ~SerialPortHandler();
 
+    QString getPortName();
     QString getReadData();
+    bool isConnected();
 
     /* async */
     bool startReadingWriting();
@@ -34,6 +39,7 @@ signals:
 private slots:
     void handleReadyRead();
     void handleError(QSerialPort::SerialPortError error);
+    void handleStateChange();
 
 public slots:
 };

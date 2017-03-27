@@ -131,16 +131,16 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="custom\adconverter.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="custom\adconverter.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="custom\counters.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="custom\counters.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="custom\digital.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="custom\digital.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="custom\usart.c">

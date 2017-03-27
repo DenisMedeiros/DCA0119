@@ -31,8 +31,9 @@ private:
     QChart *chartMode2;
     QChartView *chartView;
     QVBoxLayout *layout;
-    SerialPortHandler* sph;
+    QLabel *statusMessage;
 
+    SerialPortHandler* sph;
     QByteArray  *serialBuffer;
 
     QLineSeries *seriesLineMode1;
@@ -45,6 +46,9 @@ private:
 public slots:
     void about(void);
     void handleTimeout(void);
+
+    void newConnection(void);
 };
+
 
 #endif // MAINWINDOW_H

@@ -16,13 +16,13 @@
 
 void counters_init(void)
 {	
-	/* Set counter to normal operation */
+	/* Set counter to normal operation. */
 	TCCR0A &= ~(1 << WGM00) &  ~(1 << WGM01) &  ~(1 << WGM02);
 		
-	/* Set prescale to 1024 and start the timer */
+	/* Set prescale to 1024 and start the timer. */
 	TCCR0B |= (1 << CS00) | (1 << CS02);
 	
-	/* Enable interrupts */
+	/* Enable interrupts. */
 	TIMSK0 |= (1 << TOIE0);
 }
 

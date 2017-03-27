@@ -7,13 +7,14 @@
 #include <QCoreApplication>
 #include <QFile>
 #include <QStringList>
+#include "mainwindow.h"
 
 SerialPortHandler::SerialPortHandler(QObject *parent) : QObject(parent)
 {
 
-    QString port = getAtmegaSerialPort();
+    portName = new QString(getAtmegaSerialPort());
     serialPort = new QSerialPort(this);
-    serialPort->setPortName(port);
+    serialPort->setPortName(*portName);
     serialPort->setDataBits(QSerialPort::Data8);
     serialPort->setFlowControl(QSerialPort::NoFlowControl);
     serialPort->setParity(QSerialPort::NoParity);
@@ -23,11 +24,26 @@ SerialPortHandler::SerialPortHandler(QObject *parent) : QObject(parent)
     buffer = new QBuffer(readData);
     buffer->open(QBuffer::ReadWrite);
 
+    timer = new QTimer();
+
     connect(serialPort, &QSerialPort::readyRead, this, &SerialPortHandler::handleReadyRead);
     connect(serialPort, static_cast<void (QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error),
             this, &SerialPortHandler::handleError);
+    connect(serialPort, SIGNAL(channelReadyRead(int)), this, SLOT(handleStateChange()));
 
 
+}
+
+bool SerialPortHandler::startReadingWriting()
+{
+    if(!portName->isEmpty())
+    {
+        if(serialPort->open(QSerialPort::ReadWrite)){
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool SerialPortHandler::stopReadingWriting()
@@ -43,6 +59,11 @@ SerialPortHandler::~SerialPortHandler()
     delete buffer;
 }
 
+QString SerialPortHandler::getPortName()
+{
+    return *portName;
+}
+
 QString SerialPortHandler::getReadData()
 {
     if(buffer->bytesAvailable() > 0)
@@ -52,17 +73,14 @@ QString SerialPortHandler::getReadData()
     return QString("");
 }
 
-bool SerialPortHandler::startReadingWriting()
+bool SerialPortHandler::isConnected()
 {
-    if(serialPort->open(QSerialPort::ReadWrite)){
-        return true;
-    }
-
-    return false;
+    return serialPort->isOpen();
 }
 
 void SerialPortHandler::handleReadyRead()
 {
+    qDebug() << "Chegou dados";
     readData->append(serialPort->readAll());
 }
 
@@ -73,6 +91,10 @@ void SerialPortHandler::handleError(QSerialPort::SerialPortError serialPortError
     }
 }
 
+void SerialPortHandler::handleStateChange()
+{
+    qDebug() << "Conectou";
+}
 
 QString SerialPortHandler::getAtmegaSerialPort()
 {
