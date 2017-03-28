@@ -52,9 +52,9 @@ ISR(ADC_vect)
 		}
 	}
 	
-	USART_send_string(output);
+	//USART_send_string(output);
 	
-	/* Do a new conversion. */
+	/* Start the conversion again. */
 	ADCSRA |= (1 << ADSC);
 		
 }
