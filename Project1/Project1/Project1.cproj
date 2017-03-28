@@ -149,6 +149,12 @@
     <Compile Include="custom\digital.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="custom\system.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="custom\system.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="custom\usart.c">
       <SubType>compile</SubType>
     </Compile>

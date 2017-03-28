@@ -52,6 +52,7 @@ ISR(INT0_vect)
 		counters_stop();
 		buffer_add(&USART_tx_buffer, '-');
 		adc_stop();
+		change_duty_led1(0);
 	}
 		
 	/* Inform o the SCD the status of the system (+ = running, - = stopped). */

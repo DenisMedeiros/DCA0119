@@ -6,6 +6,8 @@
  */ 
 
 #include "adc.h"
+#include "counters.h"
+
 #include <avr/interrupt.h>
 
 #include <stdlib.h>
@@ -37,10 +39,11 @@ void adc_stop(void)
 
 ISR(ADC_vect)
 {
+	sensor_value = ADCH;
+	change_duty_led1(sensor_value);
+	/*
 	int i = 0;
 	char output[10];
-	sensor_value = ADCH;
-	
 	itoa(sensor_value, output, 10);
 	for(i = 0; i < 10; i++)
 	{
@@ -51,8 +54,8 @@ ISR(ADC_vect)
 			break;
 		}
 	}
-	
-	//USART_send_string(output);
+	USART_send_string(output);
+	*/
 	
 	/* Start the conversion again. */
 	ADCSRA |= (1 << ADSC);
