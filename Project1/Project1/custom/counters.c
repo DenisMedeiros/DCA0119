@@ -12,12 +12,15 @@
 #include <avr/interrupt.h>
 #include <stdlib.h>
 
-#define TIMER_1_SEC 61  
+#define TIMER_1_SEC 61
 
 void counters_init(void)
 {	
 	/* Set counter 0 to normal operation. */
 	TCCR0A &= ~(1 << WGM00) &  ~(1 << WGM01) &  ~(1 << WGM02);
+	
+	/* Set prescale to 1024 and start the timer. */
+	TCCR0B |= (1 << CS00) | (1 << CS02);
 	
 	/* Set PD3 (driver) and PB0 and PB1 (LEDS) as output (PWM). */
 	DDRD |= (1 << DDD3);
@@ -28,6 +31,9 @@ void counters_init(void)
 	
 	/* Configure prescaller to 1024. */
 	TCCR1B |= (1 << WGM12) | (1 << CS10) | (1 << CS12);
+	
+	/* Enable overflow interrupt for counter 0. */
+	TIMSK0 |= (1 << TOIE0);
 	
 	/* Set the PWM duty */
 	OCR1A = 1023;
