@@ -43,6 +43,8 @@ private:
 
     QTimer *timer;
 
+    int mode;
+
 public slots:
     void about(void);
     void startSystem(void);

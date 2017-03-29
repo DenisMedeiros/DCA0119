@@ -91,9 +91,7 @@ ISR(TIMER0_COMPA_vect)
 		if(system_running)
 		{
 			
-			total_time_running++;
-			
-			if(total_time_running > 180)
+			if(total_time_running > dryer_total_time())
 			{
 				system_stop();
 				return;
@@ -104,11 +102,11 @@ ISR(TIMER0_COMPA_vect)
 			
 			if(percentX > 50)
 			{
-				percentV = 0.5 * dryer_mode1(total_time_running);
+				percentV = 0.5 * dryer_value(total_time_running);
 			} 
 			else
 			{
-				percentV = dryer_mode1(total_time_running);
+				percentV = dryer_value(total_time_running);
 			} 
 			
 			x = roundf(percentX);
@@ -130,6 +128,8 @@ ISR(TIMER0_COMPA_vect)
 			buffer_add(&USART_tx_buffer, '+');
 			
 			USART_enable_tx_interrupt();
+			
+			total_time_running++;
 		}
 		else
 		{

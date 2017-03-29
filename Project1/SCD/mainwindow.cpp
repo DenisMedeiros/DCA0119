@@ -13,6 +13,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    mode = 1;
+
     aboutUi = new Ui::Dialog();
     aboutDialog = new QDialog(0, 0);
     aboutUi->setupUi(aboutDialog);
@@ -66,7 +68,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if(sph->startReadingWriting())
     {
-        QString message(QString("Connected through the port %1 | System stopped ").arg(sph->getPortName()));
+        QString message(QString("Connected through the port %1 | System stopped | Mode %2 ").arg(sph->getPortName(), QString::number(mode)));
         statusMessage->setText(message);
     }
     else

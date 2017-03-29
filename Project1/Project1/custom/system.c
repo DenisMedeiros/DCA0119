@@ -13,6 +13,9 @@
 #include <avr/interrupt.h>
 #include <math.h>
 
+#define SYSTEM_MODE_1_TIME 180
+#define SYSTEM_MODE_2_TIME 60
+
 volatile circular_buffer USART_tx_buffer;
 volatile circular_buffer USART_rx_buffer;
 volatile uint32_t ticks = 0;
@@ -123,35 +126,19 @@ uint8_t dryer_mode1(uint8_t time)
 
 uint8_t dryer_mode2(uint8_t time)
 {
-	float result_float = 0;
+	//float result_float = 0;
 	uint8_t result_int = 0;
 	
-	if(time <= 30)
+	if(time <= 20)
 	{
-		result_int = time;
+		result_int = 3*time;
 	}
-	else if(time > 30 && time <= 60)
+	else if(time > 20 && time < 40) 
 	{
-		result_int = 30;
-		
+		result_int = 60;
 	}
-	else if(time > 60 && time <= 90)
-	{
-		result_float = 1.5 * time - 60;
-		result_int = roundf(result_float);
-	}
-	else if(time > 90 && time <= 120)
-	{
-		result_int = 75;
-	}
-	else if(time > 120 && time <= 180)
-	{
-		result_float = -1.25 * time + 225;
-		result_int = roundf(result_float);
-	}
-	else
-	{
-		result_int = 255;
+	else {
+		result_int = 20;
 	}
 	
 	return result_int;
@@ -165,4 +152,32 @@ void system_change_mode(uint8_t mode)
 	}
 	
 	system_mode = mode;
+}
+
+uint8_t dryer_value(uint8_t time)
+{
+	if(system_mode == 1)
+	{
+		return dryer_mode1(time);
+	}
+	else if(system_mode == 2)
+	{
+		return dryer_mode2(time);
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+uint8_t dryer_total_time()
+{
+	if (system_mode == 1)
+	{
+		return SYSTEM_MODE_1_TIME;
+	}
+	else
+	{
+		return SYSTEM_MODE_2_TIME;
+	}
 }
