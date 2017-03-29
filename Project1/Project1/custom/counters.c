@@ -8,6 +8,7 @@
 #include "counters.h"
 #include "usart.h"
 #include "adc.h"
+#include "system.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -100,7 +101,15 @@ ISR(TIMER0_COMPA_vect)
 			
 			/* Do a weighting depending on the sensor value. */
 			percentX = (sensor_value/255.0)*100.0;
-			percentV = ((100.0 - percentX)*dryer_mode1(total_time_running)/100.0);
+			
+			if(percentX > 50)
+			{
+				percentV = 0.5 * dryer_mode1(total_time_running);
+			} 
+			else
+			{
+				percentV = dryer_mode1(total_time_running);
+			} 
 			
 			x = roundf(percentX);
 			v = roundf(percentV);

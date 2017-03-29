@@ -130,25 +130,13 @@ ISR(USART_RX_vect)
 			system_stop();
 		}
 	}
-	else if(c == '0') /* Normal mode */
+	else if(c == '1') /* Normal mode */
 	{
-		if(system_running)
-		{
-			if(system_mode == 0)
-			{
-				
-			}
-		}
+		system_change_mode(1);
 	}
-	else if(c == '1' ) /* Fast mode */
+	else if(c == '2' ) /* Fast mode */
 	{
-		if(system_running)
-		{
-			if(system_mode == 0)
-			{
-				
-			}
-		}
+		system_change_mode(2);
 	} 
 }
 

@@ -21,7 +21,7 @@ volatile char t_s[4], x_s[4], v_s[4];
 volatile uint8_t system_running = 0;
 volatile uint8_t sensor_value = 0;
 volatile uint8_t total_time_running = 0;
-volatile uint8_t system_mode = 0;
+volatile uint8_t system_mode = 1;
 
 void system_init(void)
 {
@@ -155,4 +155,14 @@ uint8_t dryer_mode2(uint8_t time)
 	}
 	
 	return result_int;
+}
+
+void system_change_mode(uint8_t mode)
+{
+	if (system_running)
+	{
+		system_stop();
+	}
+	
+	system_mode = mode;
 }
