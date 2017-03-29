@@ -45,7 +45,12 @@ private:
 
 public slots:
     void about(void);
+    void startSystem(void);
+    void stopSystem(void);
     void handleTimeout(void);
+
+    void setMode1(void);
+    void setMode2(void);
 };
 
 

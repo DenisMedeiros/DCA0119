@@ -9,6 +9,6 @@
 
 int main(void)
 {
-	init();
+	system_init();
     while(1);
 }

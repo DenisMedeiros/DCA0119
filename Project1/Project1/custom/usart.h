@@ -25,9 +25,6 @@ typedef struct
     volatile uint8_t tail_pos;
 } circular_buffer;
 
-extern volatile circular_buffer USART_tx_buffer;
-extern volatile circular_buffer USART_rx_buffer;
-
 /* USART functions */
 void USART_init(void);
 void USART_send_byte(char data);

@@ -6,10 +6,9 @@
  */ 
 
 #include "digital.h"
+#include "system.h"
 
 #include <avr/interrupt.h>
-#include "counters.h"
-#include "adc.h"
 
 /*
  * PD0 - pull up button (interrupt)
@@ -19,7 +18,7 @@
  */
 void digital_init(void)
 {
-	/* Set PB0 as output (used for show then the system is running). */
+	/* Set PB0 as output (used for showing when the system is running). */
 	DDRB |= (1 << DDB0);
 	
 	/* Set PD2 as input */
@@ -39,26 +38,10 @@ ISR(INT0_vect)
 {
 	if(!system_running)
 	{
-		PORTB |= (1 << PORTB0);
-		system_running = 1;
-		counters_start();
-		buffer_add(&USART_tx_buffer, '+');
-		adc_start();
+		system_start();
 	}
 	else
 	{
-		PORTB &= ~(1 << PORTB0);
-		system_running = 0;
-		sensor_value = 0;
-		total_time_running = 0;
-		counters_stop();
-		buffer_add(&USART_tx_buffer, '-');
-		adc_stop();
-		change_duty_led_v(0);
-		change_duty_led_x(0);
+		system_stop();
 	}
-		
-	/* Inform o the SCD the status of the system (+ = running, - = stopped). */
-	USART_enable_tx_interrupt();
-	
 }

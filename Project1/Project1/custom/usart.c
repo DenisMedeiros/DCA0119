@@ -6,7 +6,14 @@
  */ 
 
 #include "usart.h"
+#include "system.h"
+
 #include <avr/interrupt.h>
+
+extern volatile circular_buffer USART_tx_buffer;
+extern volatile circular_buffer USART_rx_buffer;
+extern volatile uint8_t system_running;
+extern volatile uint8_t system_mode;
 
 void USART_init(void) 
 {
@@ -104,11 +111,45 @@ void USART_enable_tx_interrupt(void)
 	 UCSR0B |= (1 << UDRIE0);
 }
 
+/* Command received from SCD. */
 ISR(USART_RX_vect)
 {
 	unsigned char c = UDR0;
-	buffer_add(&USART_rx_buffer, c);
-	UDR0 = '0' + USART_rx_buffer.size;
+	
+	if(c == '+')
+	{
+		if(!system_running)
+		{
+			system_start();
+		}
+	}
+	else if(c == '-')
+	{
+		if(system_running)
+		{
+			system_stop();
+		}
+	}
+	else if(c == '0') /* Normal mode */
+	{
+		if(system_running)
+		{
+			if(system_mode == 0)
+			{
+				
+			}
+		}
+	}
+	else if(c == '1' ) /* Fast mode */
+	{
+		if(system_running)
+		{
+			if(system_mode == 0)
+			{
+				
+			}
+		}
+	} 
 }
 
 ISR(USART_UDRE_vect)

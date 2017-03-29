@@ -31,7 +31,7 @@ void counters_init(void)
 	TIMSK0 |= (1 << OCIE0A);
 	
 	/* Set the CTC value to compare. */
-	/* 125 is useful to get exactly 1 sec using interrupts. */
+	/* 125 is useful to get exactly 1 second using interrupts. */
 	OCR0A = 125;
 	
 	/** Counter1 - PWM generator */
@@ -46,66 +46,64 @@ void counters_init(void)
 	/* Configure prescaller to 1024 and start the timer. */
 	TCCR1B |= (1 << WGM12) | (1 << CS10) | (1 << CS12);
 	
-	/* Set the PWM duty */
+	/* Set the initial PWM duty to 0 (system stopped).  */
 	OCR1A = 0;
 	OCR1B = 0;
 	
 }
 
-void counters_stop(void)
-{
-	/* Stop the timer */
-	TCCR0B &= ~(1 << CS00) & ~(1 << CS02);
-	
-	/* Disable interrupts. */
-	TIMSK0 &= ~(1 << TOIE0);
-	
-	/* Set the PWM duty */
-	OCR1A = 0;
-	OCR1B = 0;
-	
-}
-
+/* Start the Counter 1 (PWM generator). */
 void counters_start(void)
 {
-	/* Set prescale to 1024 and start the timer. */
-	TCCR0B |= (1 << CS00) | (1 << CS02);
+	/* Configure counter 1 as fast PWM generator (8-bit resolution). */
+	TCCR1A |= (1 << COM1A1) | (1 << COM1B1) | (1 << WGM10);
 	
-	/* Enable interrupts. */
-	TIMSK0 |= (1 << TOIE0);
+	/* Configure prescaller to 1024 and start the timer. */
+	TCCR1B |= (1 << WGM12) | (1 << CS10) | (1 << CS12);
 }
 
+/* Stop the Counter 1 (PWM generator). */
+void counters_stop(void)
+{
+	/* Set the PWM duty */
+	OCR1A = 0;
+	OCR1B = 0;
+	
+	/* Configure counter 1 as fast PWM generator (8-bit resolution). */
+	TCCR1A &= ~(1 << COM1A1) & ~(1 << COM1B1) & ~(1 << WGM10);
+	
+	/* Configure prescaller to 1024 and start the timer. */
+	TCCR1B &= ~(1 << WGM12) & ~(1 << CS10) & ~(1 << CS12);
+	
+}
+
+
+/* Interrupt for counter 0. */
 ISR(TIMER0_COMPA_vect)
 {
-	if(system_running)
+	float percentV, percentX;
+	uint8_t v, x;
+	
+	if(ticks > TIMER_1_SEC_TICKS)
 	{
-		if(ticks > TIMER_1_SEC_TICKS)
+		ticks = 0;
+		if(system_running)
 		{
-			float percentV, percentX;
-			uint8_t v, x;
 			
 			total_time_running++;
 			
-			if(total_time_running >= 180)
+			if(total_time_running > 180)
 			{
-				PORTB &= ~(1 << PORTB0);
-				system_running = 0;
-				counters_stop();
-				buffer_add(&USART_tx_buffer, '-');
-				adc_stop();
-				change_duty_led_v(0);
-				change_duty_led_x(0);
+				system_stop();
 				return;
 			}
 			
 			/* Do a weighting depending on the sensor value. */
 			percentX = (sensor_value/255.0)*100.0;
-			
 			percentV = ((100.0 - percentX)*dryer_mode1(total_time_running)/100.0);
 			
 			x = roundf(percentX);
 			v = roundf(percentV);
-			
 			
 			/* Set color of LED 2 and speed of the motor */
 			change_duty_led_v(roundf(255.0*percentV/100.0));
@@ -123,12 +121,18 @@ ISR(TIMER0_COMPA_vect)
 			buffer_add(&USART_tx_buffer, '+');
 			
 			USART_enable_tx_interrupt();
-			ticks = 0;
 		}
-		ticks++;
+		else
+		{
+			buffer_add(&USART_tx_buffer, '-');
+			USART_enable_tx_interrupt();
+		}
 	}
+	
+	ticks++;
 }
 
+/* Change duty for LED 1 according to sensor value. */
 void change_duty_led_x(uint8_t duty)
 {	
 	TCCR1B &= ~(1 << CS10) & ~(1 << CS12);
@@ -136,6 +140,9 @@ void change_duty_led_x(uint8_t duty)
 	TCCR1B|= (1 << CS10) | (1 << CS12);
 }
 
+/* Change duty cycle of LED 2. This PWM signal is also used as
+ *  input for the optocoupler.
+ */
 void change_duty_led_v(uint8_t duty)
 {
 	TCCR1B &= ~(1 << CS10) & ~(1 << CS12);
@@ -143,38 +150,3 @@ void change_duty_led_v(uint8_t duty)
 	TCCR1B|= (1 << CS10) | (1 << CS12);
 }
 
-uint8_t dryer_mode1(uint8_t time)
-{
-	float result_float = 0;
-	uint8_t result_int = 0;
-	
-	if(time <= 30)
-	{
-		result_int = time;
-	}
-	else if(time > 30 && time <= 60)
-	{
-		result_int = 30;
-		
-	}
-	else if(time > 60 && time <= 90)
-	{
-		result_float = 1.5 * time - 60;
-		result_int = roundf(result_float);
-	}
-	else if(time > 90 && time <= 120)
-	{
-		result_int = 75;
-	}
-	else if(time > 120 && time <= 180)
-	{
-		result_float = -1.25 * time + 225;
-		result_int = roundf(result_float);
-	}
-	else
-	{
-		result_int = 255;
-	}
-	
-	return result_int;
-}

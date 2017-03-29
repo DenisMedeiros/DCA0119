@@ -25,6 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
     seriesPointsMode1 = new QScatterSeries();
     seriesPointsMode2 = new QScatterSeries();
 
+    //seriesPointsMode1->setMarkerSize(5);
+
     /* Creates the chart of the mode 1 */
     chartMode1 = new QChart();
     chartMode1->addSeries(seriesLineMode1);
@@ -64,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if(sph->startReadingWriting())
     {
-        QString message(QString("Connected through the port %1 | System stopped").arg(sph->getPortName()));
+        QString message(QString("Connected through the port %1 | System stopped ").arg(sph->getPortName()));
         statusMessage->setText(message);
     }
     else
@@ -76,6 +78,10 @@ MainWindow::MainWindow(QWidget *parent) :
     /* Connect slots and signals */
     connect(ui->actionSCD, SIGNAL(triggered(bool)), this, SLOT(about(void)));
     connect(timer, SIGNAL(timeout()), this, SLOT(handleTimeout()));
+    connect(ui->actionStart, SIGNAL(triggered(bool)), this, SLOT(startSystem()));
+    connect(ui->actionStop, SIGNAL(triggered(bool)), this, SLOT(stopSystem()));
+    connect(ui->actionMode1, SIGNAL(triggered(bool)), this, SLOT(setMode1()));
+    connect(ui->actionMode2, SIGNAL(triggered(bool)), this, SLOT(setMode2()));
 
     timer->start(TIMER_VALUE);
 
@@ -124,9 +130,12 @@ void MainWindow::handleTimeout()
         QString bufferedData = sph->getReadData().trimmed();
         QStringList dataSet = bufferedData.split("+");
 
+        //qDebug() << QString("Recived: ") << bufferedData;
+
         if(bufferedData.contains('-'))
         {
             seriesLineMode1->clear();
+            seriesPointsMode1->clear();
             ui->lineEditTime->setText(QString("0 sec"));
             ui->lineEditSensor->setText(QString("0 %"));
             ui->lineEditPWM->setText(QString("0 %"));
@@ -155,14 +164,14 @@ void MainWindow::handleTimeout()
                     ui->lineEditSensor->setText(QString("%1 %").arg(QString::number(x)));
                     ui->lineEditPWM->setText(QString("%1 %").arg(QString::number(v)));
 
-                    qDebug() << QString("Recived t = %1, x = %2 and v = %3").arg(QString::number(t), QString::number(x), QString::number(v));
+                    //qDebug() << QString("Recived t = %1, x = %2 and v = %3").arg(QString::number(t), QString::number(x), QString::number(v));
 
                 }
             }
         }
         else
         {
-            qDebug() << "System is stopped";
+            //qDebug() << "System is stopped";
         }
     }
     else
@@ -175,3 +184,34 @@ void MainWindow::handleTimeout()
 
 }
 
+void MainWindow::startSystem()
+{
+    if(sph->isConnected())
+    {
+        sph->writeData("+");
+    }
+}
+
+void MainWindow::stopSystem()
+{
+    if(sph->isConnected())
+    {
+        sph->writeData("-");
+    }
+}
+
+void MainWindow::setMode1()
+{
+    if(sph->isConnected())
+    {
+        sph->writeData("1");
+    }
+}
+
+void MainWindow::setMode2()
+{
+    if(sph->isConnected())
+    {
+        sph->writeData("2");
+    }
+}

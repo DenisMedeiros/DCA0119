@@ -5,11 +5,21 @@
  *  Author: Denis
  */ 
 
-
 #ifndef SYSTEM_H_
 #define SYSTEM_H_
 
-/* This functions initializes everythnig in the system. */
-void init(void);
+#include <avr/io.h>
+
+/* This functions initializes everything in the system. */
+void system_init(void);
+/* Start the system. */
+void system_start(void);
+/* Stop the system. */
+void system_stop(void);
+
+void system_change_mode(char c);
+
+uint8_t dryer_mode1(uint8_t time);
+uint8_t dryer_mode2(uint8_t time);
 
 #endif /* SYSTEM_H_ */

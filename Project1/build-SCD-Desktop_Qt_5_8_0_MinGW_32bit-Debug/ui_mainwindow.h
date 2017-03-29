@@ -230,9 +230,9 @@ public:
         label->setText(QApplication::translate("MainWindow", "Time", Q_NULLPTR));
         lineEditTime->setText(QApplication::translate("MainWindow", "0 sec", Q_NULLPTR));
         label_3->setText(QApplication::translate("MainWindow", "Sensor", Q_NULLPTR));
-        lineEditSensor->setText(QApplication::translate("MainWindow", "0%", Q_NULLPTR));
+        lineEditSensor->setText(QApplication::translate("MainWindow", "0 %", Q_NULLPTR));
         label_2->setText(QApplication::translate("MainWindow", "PWM", Q_NULLPTR));
-        lineEditPWM->setText(QApplication::translate("MainWindow", "0%", Q_NULLPTR));
+        lineEditPWM->setText(QApplication::translate("MainWindow", "0 %", Q_NULLPTR));
         menuSystem->setTitle(QApplication::translate("MainWindow", "System", Q_NULLPTR));
         menuOperation->setTitle(QApplication::translate("MainWindow", "Operation", Q_NULLPTR));
         menuAbout->setTitle(QApplication::translate("MainWindow", "About", Q_NULLPTR));
