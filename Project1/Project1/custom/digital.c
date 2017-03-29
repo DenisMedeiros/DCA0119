@@ -37,7 +37,7 @@ void digital_init(void)
 
 ISR(INT0_vect)
 {
-	if(!total_time_running)
+	if(!system_running)
 	{
 		PORTB |= (1 << PORTB0);
 		system_running = 1;
@@ -49,6 +49,8 @@ ISR(INT0_vect)
 	{
 		PORTB &= ~(1 << PORTB0);
 		system_running = 0;
+		sensor_value = 0;
+		total_time_running = 0;
 		counters_stop();
 		buffer_add(&USART_tx_buffer, '-');
 		adc_stop();

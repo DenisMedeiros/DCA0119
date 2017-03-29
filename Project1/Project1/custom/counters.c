@@ -60,6 +60,10 @@ void counters_stop(void)
 	/* Disable interrupts. */
 	TIMSK0 &= ~(1 << TOIE0);
 	
+	/* Set the PWM duty */
+	OCR1A = 0;
+	OCR1B = 0;
+	
 }
 
 void counters_start(void)
