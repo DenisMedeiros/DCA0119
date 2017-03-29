@@ -40,7 +40,8 @@ void adc_stop(void)
 ISR(ADC_vect)
 {
 	sensor_value = ADCH;
-	change_duty_led1(sensor_value);
+	change_duty_led_x(sensor_value);
+	
 	/*
 	int i = 0;
 	char output[10];

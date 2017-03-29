@@ -7,6 +7,7 @@
 
 #include "counters.h"
 #include "usart.h"
+#include "adc.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -36,7 +37,7 @@ void counters_init(void)
 	/** Counter1 - PWM generator */
 	
 	/* Set PD3 (driver) and PB0 and PB1 (LEDS) as output (PWM). */
-	DDRD |= (1 << DDD3);
+	//DDRD |= (1 << DDD3);
 	DDRB |= (1 << DDB1) | (1 << DDB2);
 	
 	/* Configure counter 1 as fast PWM generator (8-bit resolution). */
@@ -59,8 +60,6 @@ void counters_stop(void)
 	/* Disable interrupts. */
 	TIMSK0 &= ~(1 << TOIE0);
 	
-	/* Reset the variables */
-	t = 0, v = 0, x = 0;
 }
 
 void counters_start(void)
@@ -78,19 +77,38 @@ ISR(TIMER0_COMPA_vect)
 	{
 		if(ticks > TIMER_1_SEC_TICKS)
 		{
-			float temp;
+			float percentV, percentX;
+			uint8_t v, x;
+			
 			total_time_running++;
 			
-			/* Do a weighting according to the sensor value */
-			temp = (sensor_value/255.0) * dryer_mode1(total_time_running);
-			v = roundf(temp);
+			if(total_time_running >= 180)
+			{
+				PORTB &= ~(1 << PORTB0);
+				system_running = 0;
+				counters_stop();
+				buffer_add(&USART_tx_buffer, '-');
+				adc_stop();
+				change_duty_led_v(0);
+				change_duty_led_x(0);
+				return;
+			}
 			
-			//t++;
-			//v = t+2;
-			//x = t/2;
+			/* Do a weighting depending on the sensor value. */
+			percentX = (sensor_value/255.0)*100.0;
 			
-			//itoa(t, (char*) t_s, 10);
-			//itoa(x, (char*) x_s, 10);
+			percentV = ((100.0 - percentX)*dryer_mode1(total_time_running)/100.0);
+			
+			x = roundf(percentX);
+			v = roundf(percentV);
+			
+			
+			/* Set color of LED 2 and speed of the motor */
+			change_duty_led_v(roundf(255.0*percentV/100.0));
+			
+			/* Concert values to char to be sent by USART. */
+			itoa(total_time_running, (char*) t_s, 10);
+			itoa(x, (char*) x_s, 10);
 			itoa(v, (char*) v_s, 10);
 
 			buffer_put_string(&USART_tx_buffer, (char*) t_s);
@@ -100,9 +118,6 @@ ISR(TIMER0_COMPA_vect)
 			buffer_put_string(&USART_tx_buffer, (char*) v_s);
 			buffer_add(&USART_tx_buffer, '+');
 			
-			
-			
-			
 			USART_enable_tx_interrupt();
 			ticks = 0;
 		}
@@ -110,20 +125,19 @@ ISR(TIMER0_COMPA_vect)
 	}
 }
 
-void change_duty_led1(uint8_t duty)
-{
-	TCCR1B &= ~(1 << CS10) & ~(1 << CS12);
-	OCR1A = duty;
-	TCCR1B|= (1 << CS10) | (1 << CS12);
-}
-
-void change_duty_led2(uint8_t duty)
-{
+void change_duty_led_x(uint8_t duty)
+{	
 	TCCR1B &= ~(1 << CS10) & ~(1 << CS12);
 	OCR1B = duty;
 	TCCR1B|= (1 << CS10) | (1 << CS12);
 }
 
+void change_duty_led_v(uint8_t duty)
+{
+	TCCR1B &= ~(1 << CS10) & ~(1 << CS12);
+	OCR1A = duty;
+	TCCR1B|= (1 << CS10) | (1 << CS12);
+}
 
 uint8_t dryer_mode1(uint8_t time)
 {

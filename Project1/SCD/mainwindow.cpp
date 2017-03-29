@@ -147,13 +147,16 @@ void MainWindow::handleTimeout()
                 QStringList valuesStr = data.split(";");
                 if(valuesStr.size() == 3) {
                     t = valuesStr[0].toInt();
-                    v = valuesStr[1].toInt();
-                    x = valuesStr[2].toInt();
-                    seriesLineMode1->append(t,v);
-                    seriesPointsMode1->append(t,v);
+                    x = valuesStr[1].toInt();
+                    v = valuesStr[2].toInt();
+                    seriesLineMode1->append(t, v);
+                    seriesPointsMode1->append(t ,v);
                     ui->lineEditTime->setText(QString("%1 sec").arg(QString::number(t)));
-                    ui->lineEditSensor->setText(QString("%1 %").arg(QString::number(v)));
-                    ui->lineEditPWM->setText(QString("%1 %").arg(QString::number(x)));
+                    ui->lineEditSensor->setText(QString("%1 %").arg(QString::number(x)));
+                    ui->lineEditPWM->setText(QString("%1 %").arg(QString::number(v)));
+
+                    qDebug() << QString("Recived t = %1, x = %2 and v = %3").arg(QString::number(t), QString::number(x), QString::number(v));
+
                 }
             }
         }

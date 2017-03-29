@@ -19,7 +19,7 @@
  */
 void digital_init(void)
 {
-	/* Set PB0 as output. */
+	/* Set PB0 as output (used for show then the system is running). */
 	DDRB |= (1 << DDB0);
 	
 	/* Set PD2 as input */
@@ -37,7 +37,7 @@ void digital_init(void)
 
 ISR(INT0_vect)
 {
-	if(!system_running)
+	if(!total_time_running)
 	{
 		PORTB |= (1 << PORTB0);
 		system_running = 1;
@@ -52,7 +52,8 @@ ISR(INT0_vect)
 		counters_stop();
 		buffer_add(&USART_tx_buffer, '-');
 		adc_stop();
-		change_duty_led1(0);
+		change_duty_led_v(0);
+		change_duty_led_x(0);
 	}
 		
 	/* Inform o the SCD the status of the system (+ = running, - = stopped). */
