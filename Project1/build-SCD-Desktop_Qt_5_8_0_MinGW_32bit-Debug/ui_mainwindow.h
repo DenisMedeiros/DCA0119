@@ -59,7 +59,8 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QStringLiteral("MainWindow"));
-        MainWindow->resize(493, 257);
+        MainWindow->resize(600, 400);
+        MainWindow->setMinimumSize(QSize(600, 400));
         QIcon icon;
         icon.addFile(QStringLiteral(":/icons/resources/scd.svg"), QSize(), QIcon::Normal, QIcon::Off);
         MainWindow->setWindowIcon(icon);
@@ -183,7 +184,7 @@ public:
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 493, 21));
+        menuBar->setGeometry(QRect(0, 0, 600, 21));
         menuSystem = new QMenu(menuBar);
         menuSystem->setObjectName(QStringLiteral("menuSystem"));
         menuOperation = new QMenu(menuBar);

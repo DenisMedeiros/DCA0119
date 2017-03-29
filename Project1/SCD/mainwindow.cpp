@@ -41,6 +41,9 @@ MainWindow::MainWindow(QWidget *parent) :
     //chartMode1->setMargins(QMargins(0,0,0,0));
     //chartMode1->layout()->setContentsMargins(0,0,0,0);
 
+    chartMode1->axisY()->setTitleText("Speed of motor (%)");
+    chartMode1->axisX()->setTitleText("Time (seconds)");
+
     chartMode2 = new QChart();
     chartMode2->legend()->hide();
 
@@ -49,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
     chartMode2->addSeries(seriesPointsMode2);
 
 
-    chartMode1->setTitle("Mode 1");
+    chartMode1->setTitle("System Output");
     chartView = new QChartView(chartMode1);
     chartView->setRenderHint(QPainter::Antialiasing);
 
@@ -142,11 +145,11 @@ void MainWindow::handleTimeout()
             ui->lineEditSensor->setText(QString("0 %"));
             ui->lineEditPWM->setText(QString("0 %"));
 
-            QString message(QString("Connected through the port %1 | System stopped").arg(sph->getPortName()));
+            QString message(QString("Connected through the port %1 | System stopped | Mode %2 ").arg(sph->getPortName(), QString::number(mode)));
             statusMessage->setText(message);
         } else if(bufferedData.contains('+'))
         {
-            QString message(QString("Connected through the port %1 | System running").arg(sph->getPortName()));
+            QString message(QString("Connected through the port %1 | System running | Mode %2 ").arg(sph->getPortName(), QString::number(mode)));
             statusMessage->setText(message);
 
         }
@@ -207,6 +210,7 @@ void MainWindow::setMode1()
     if(sph->isConnected())
     {
         sph->writeData("1");
+        mode = 1;
     }
 }
 
@@ -215,5 +219,6 @@ void MainWindow::setMode2()
     if(sph->isConnected())
     {
         sph->writeData("2");
+        mode = 2;
     }
 }
