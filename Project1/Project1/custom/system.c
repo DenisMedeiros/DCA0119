@@ -9,12 +9,11 @@
 #include "counters.h"
 #include "digital.h"
 #include "adc.h"
+#include "system.h"
 
 #include <avr/interrupt.h>
 #include <math.h>
 
-#define SYSTEM_MODE_1_TIME 180
-#define SYSTEM_MODE_2_TIME 60
 
 /* Buffer for USART transmission (sending). */
 volatile circular_buffer USART_tx_buffer;

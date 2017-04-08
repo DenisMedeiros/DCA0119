@@ -10,6 +10,11 @@
 
 #include <avr/io.h>
 
+#define SYSTEM_MODE_1_TIME 180
+#define SYSTEM_MODE_2_TIME 60
+#define LIGHT_THRESHOLD 40
+#define HIGH_LIGHT_WEIGHT 0.5
+
 /* This function initializes everything in the system. */
 void system_init(void);
 /* Start the system. */

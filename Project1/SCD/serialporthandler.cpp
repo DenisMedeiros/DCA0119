@@ -15,6 +15,8 @@ SerialPortHandler::SerialPortHandler(QObject *parent) : QObject(parent)
     portName = new QString(getAtmegaSerialPort());
     serialPort = new QSerialPort(this);
     serialPort->setPortName(*portName);
+
+    /* Configure parameters for USART. */
     serialPort->setDataBits(QSerialPort::Data8);
     serialPort->setFlowControl(QSerialPort::NoFlowControl);
     serialPort->setParity(QSerialPort::NoParity);
@@ -24,14 +26,13 @@ SerialPortHandler::SerialPortHandler(QObject *parent) : QObject(parent)
     buffer = new QBuffer(readData);
     buffer->open(QBuffer::ReadWrite);
 
-    timer = new QTimer();
-
     connect(serialPort, &QSerialPort::readyRead, this, &SerialPortHandler::handleReadyRead);
     connect(serialPort, static_cast<void (QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error),
             this, &SerialPortHandler::handleError);
 
 }
 
+/* Open the connection and start to read and write data. */
 bool SerialPortHandler::startReadingWriting()
 {
     if(!portName->isEmpty())
@@ -44,6 +45,7 @@ bool SerialPortHandler::startReadingWriting()
     return false;
 }
 
+/* Close the connection and stop to read and write data. */
 bool SerialPortHandler::stopReadingWriting()
 {
     serialPort->close();
@@ -57,12 +59,14 @@ SerialPortHandler::~SerialPortHandler()
     delete buffer;
 }
 
-QString SerialPortHandler::getPortName()
+/* Returns the port name. */
+const QString SerialPortHandler::getPortName()
 {
     return *portName;
 }
 
-QString SerialPortHandler::getReadData()
+/* Return read data. */
+const QString SerialPortHandler::getReadData()
 {
     if(buffer->bytesAvailable() > 0)
     {
@@ -71,16 +75,19 @@ QString SerialPortHandler::getReadData()
     return QString("");
 }
 
+/* Check if the microcontroller is connected. */
 bool SerialPortHandler::isConnected()
 {
     return serialPort->isOpen();
 }
 
+/* Handle signal when data has been arrive. */
 void SerialPortHandler::handleReadyRead()
 {
     readData->append(serialPort->readAll());
 }
 
+/* Handle error with the connection. */
 void SerialPortHandler::handleError(QSerialPort::SerialPortError serialPortError)
 {
     if (serialPortError == QSerialPort::ReadError) {
@@ -88,6 +95,7 @@ void SerialPortHandler::handleError(QSerialPort::SerialPortError serialPortError
     }
 }
 
+/* Returns the Atmega serial port name (e.g. COM3, ttyUSB0). */
 QString SerialPortHandler::getAtmegaSerialPort()
 {
     foreach (const QSerialPortInfo &devinfo, QSerialPortInfo::availablePorts()) {
@@ -101,6 +109,7 @@ QString SerialPortHandler::getAtmegaSerialPort()
     return "";
 }
 
+/* Write data on the serial port buffer. */
 int SerialPortHandler::writeData(QByteArray data)
 {
     qint64 bytesWritten = serialPort->write(data);

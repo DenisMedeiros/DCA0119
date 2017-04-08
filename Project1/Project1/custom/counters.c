@@ -108,9 +108,9 @@ ISR(TIMER0_COMPA_vect)
 			 * If the light is greater than 50% (if there is much light), then
 			 * put the FAN to run slower (50% of the total).
 			 */
-			if(percentSensorX > 50)
+			if(percentSensorX > LIGHT_THRESHOLD)
 			{
-				percentFanV = 0.5 * dryer_value(total_time_running);
+				percentFanV = HIGH_LIGHT_WEIGHT * dryer_value(total_time_running);
 			} 
 			else
 			{
