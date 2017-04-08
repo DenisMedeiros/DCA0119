@@ -21,6 +21,7 @@
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
+#include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
@@ -43,9 +44,11 @@ public:
     QHBoxLayout *horizontalLayout;
     QLabel *label;
     QLineEdit *lineEditTime;
+    QSpacerItem *horizontalSpacer;
     QHBoxLayout *horizontalLayout_3;
     QLabel *label_3;
     QLineEdit *lineEditSensor;
+    QSpacerItem *horizontalSpacer_2;
     QHBoxLayout *horizontalLayout_2;
     QLabel *label_2;
     QLineEdit *lineEditPWM;
@@ -125,9 +128,12 @@ public:
 
         horizontalLayout->addWidget(lineEditTime);
 
-        horizontalLayout->setStretch(0, 20);
 
         horizontalLayout_4->addLayout(horizontalLayout);
+
+        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_4->addItem(horizontalSpacer);
 
         horizontalLayout_3 = new QHBoxLayout();
         horizontalLayout_3->setSpacing(6);
@@ -145,9 +151,12 @@ public:
 
         horizontalLayout_3->addWidget(lineEditSensor);
 
-        horizontalLayout_3->setStretch(0, 20);
 
         horizontalLayout_4->addLayout(horizontalLayout_3);
+
+        horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_4->addItem(horizontalSpacer_2);
 
         horizontalLayout_2 = new QHBoxLayout();
         horizontalLayout_2->setSpacing(6);
@@ -166,13 +175,14 @@ public:
 
         horizontalLayout_2->addWidget(lineEditPWM);
 
-        horizontalLayout_2->setStretch(0, 20);
 
         horizontalLayout_4->addLayout(horizontalLayout_2);
 
         horizontalLayout_4->setStretch(0, 30);
-        horizontalLayout_4->setStretch(1, 30);
-        horizontalLayout_4->setStretch(2, 40);
+        horizontalLayout_4->setStretch(1, 5);
+        horizontalLayout_4->setStretch(2, 30);
+        horizontalLayout_4->setStretch(3, 5);
+        horizontalLayout_4->setStretch(4, 30);
 
         verticalLayout->addLayout(horizontalLayout_4);
 
@@ -184,7 +194,7 @@ public:
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 600, 21));
+        menuBar->setGeometry(QRect(0, 0, 600, 26));
         menuSystem = new QMenu(menuBar);
         menuSystem->setObjectName(QStringLiteral("menuSystem"));
         menuOperation = new QMenu(menuBar);

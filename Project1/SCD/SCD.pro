@@ -25,7 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    serialporthandler.cpp
+        serialporthandler.cpp
 
 HEADERS  += mainwindow.h \
     serialporthandler.h

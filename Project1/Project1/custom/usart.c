@@ -15,6 +15,7 @@ extern volatile circular_buffer USART_rx_buffer;
 extern volatile uint8_t system_running;
 extern volatile uint8_t system_mode;
 
+/* Configure the USART. */
 void USART_init(void) 
 {
 	/* Set baud rate */
@@ -32,14 +33,16 @@ void USART_init(void)
 	
 }
 
+/* Send one byte (with polling). */
 void USART_send_byte(char data)
 {
-	/* Wait for empty transmit buffer */
+	/* Wait for empty transmit buffer. */
 	while(!(UCSR0A & (1 << UDRE0)));
-	/* Put data into buffer, then sends the data */
+	/* Put data into buffer, then sends the data. */
 	UDR0 = data;	
 }
 
+/* Send one string (with polling). */
 void USART_send_string(char* string){
 	while(*string != '\0')
 	{
@@ -48,6 +51,7 @@ void USART_send_string(char* string){
 	}
 }
 
+/* Receive one byte (with polling). */
 char USART_receive_byte(void)
 {
 	/* Wait for data to be received */
@@ -57,7 +61,7 @@ char USART_receive_byte(void)
 	return UDR0;
 }
 
-
+/* Add one char in the transmission buffer. */
 char buffer_add(volatile circular_buffer* buffer, char c)
 {
 	uint8_t next_head_pos = (buffer->head_pos + 1) % BUFFER_SIZE;
@@ -75,6 +79,7 @@ char buffer_add(volatile circular_buffer* buffer, char c)
 	 }
 }
 
+/* Remove one char from the receiving buffer. */
 char buffer_remove(volatile circular_buffer* buffer)
 {
 	char c;
@@ -90,6 +95,7 @@ char buffer_remove(volatile circular_buffer* buffer)
 	}
 }
 
+/* Put one string in the transmission buffer. */
 char buffer_put_string(volatile circular_buffer* buffer, char* string)
 {
 	while(*string != 0x00)
@@ -104,18 +110,25 @@ char buffer_put_string(volatile circular_buffer* buffer, char* string)
 	return 0;
 }
 
-/* Interrupts handlers */
-
+/* Enable the transmission interrupt. */
 void USART_enable_tx_interrupt(void)
 {
 	 UCSR0B |= (1 << UDRIE0);
 }
 
-/* Command received from SCD. */
+/* Handle interrupt when data has arrived. 
+ * The char received is a command for the system.
+ * '+' = start the system
+ * '-' = stop the system
+ * '1' = change system to mode 1
+ * '2' = change system to mode 2
+ */
 ISR(USART_RX_vect)
 {
 	unsigned char c = UDR0;
 	
+
+	 */
 	if(c == '+')
 	{
 		if(!system_running)
@@ -140,13 +153,18 @@ ISR(USART_RX_vect)
 	} 
 }
 
+/* Handle interrupt when data is ready to be sent. 
+ * This happens when the USART internal buffer is empty.
+ */
 ISR(USART_UDRE_vect)
 {
 	unsigned char c = buffer_remove(&USART_tx_buffer);
+	
 	if(c == 255) {
 		/* Disable interrupt */
 		UCSR0B &= ~(1 << UDRIE0);
 		return;
 	}
+	
 	UDR0 = c;
 }

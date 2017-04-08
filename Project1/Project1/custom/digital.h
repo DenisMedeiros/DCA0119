@@ -13,6 +13,7 @@
 
 extern volatile uint8_t system_running;
 
+/* Initializes digital buttons and LEDs. */
 void digital_init(void);
 
 #endif /* DIGITAL_H_ */

@@ -17,6 +17,7 @@
 
 #define TIMER_1_SEC_TICKS 125
 
+/* Configure the counters. */
 void counters_init(void)
 {	
 	
@@ -78,47 +79,54 @@ void counters_stop(void)
 	
 }
 
-
-/* Interrupt for counter 0. */
+/* Interrupt for counter 0 (time elapsed). 
+ * This function is the main part of the system. Based on the time elapsed, 
+ * it handles the PWN singal sent to the FAN. It also controls when the
+ * process should stop and the data sent to the SCD.
+ */
 ISR(TIMER0_COMPA_vect)
 {
-	float percentV, percentX;
-	uint8_t v, x;
+	float percentFanV, percentSensorX;
+	uint8_t fanV, sensorX;
 	
+	/* Verify if 1 second has been elapsed. */
 	if(ticks > TIMER_1_SEC_TICKS)
 	{
 		ticks = 0;
 		if(system_running)
 		{
-			
+			/* If the total time of the process has been finished, then stop. */
 			if(total_time_running > dryer_total_time())
 			{
 				system_stop();
 				return;
 			}
+
+			percentSensorX = (sensor_value/255.0) * 100.0;
 			
-			/* Do a weighting depending on the sensor value. */
-			percentX = (sensor_value/255.0)*100.0;
-			
-			if(percentX > 50)
+			/* Apply a weight depending on the sensor value. 
+			 * If the light is greater than 50% (if there is much light), then
+			 * put the FAN to run slower (50% of the total).
+			 */
+			if(percentSensorX > 50)
 			{
-				percentV = 0.5 * dryer_value(total_time_running);
+				percentFanV = 0.5 * dryer_value(total_time_running);
 			} 
 			else
 			{
-				percentV = dryer_value(total_time_running);
+				percentFanV = dryer_value(total_time_running);
 			} 
 			
-			x = roundf(percentX);
-			v = roundf(percentV);
+			sensorX = roundf(percentSensorX);
+			fanV = roundf(percentFanV);
 			
-			/* Set color of LED 2 and speed of the motor */
-			change_duty_led_v(roundf(255.0*percentV/100.0));
+			/* Set intensity of LED 2 and speed of the motor */
+			change_duty_led_v(roundf(255.0 * percentFanV/100.0));
 			
-			/* Concert values to char to be sent by USART. */
+			/* Convert values to char to be sent by USART. */
 			itoa(total_time_running, (char*) t_s, 10);
-			itoa(x, (char*) x_s, 10);
-			itoa(v, (char*) v_s, 10);
+			itoa(sensorX, (char*) x_s, 10);
+			itoa(fanV, (char*) v_s, 10);
 
 			buffer_put_string(&USART_tx_buffer, (char*) t_s);
 			buffer_add(&USART_tx_buffer, ';');
@@ -131,7 +139,7 @@ ISR(TIMER0_COMPA_vect)
 			
 			total_time_running++;
 		}
-		else
+		else /* If the system is not running. */
 		{
 			buffer_add(&USART_tx_buffer, '-');
 			USART_enable_tx_interrupt();
@@ -141,7 +149,7 @@ ISR(TIMER0_COMPA_vect)
 	ticks++;
 }
 
-/* Change duty for LED 1 according to sensor value. */
+/* Change duty for LED 1 (sensor) according to sensor value. */
 void change_duty_led_x(uint8_t duty)
 {	
 	TCCR1B &= ~(1 << CS10) & ~(1 << CS12);
@@ -149,7 +157,7 @@ void change_duty_led_x(uint8_t duty)
 	TCCR1B|= (1 << CS10) | (1 << CS12);
 }
 
-/* Change duty cycle of LED 2. This PWM signal is also used as
+/* Change duty cycle of LED 2 (FAN). This PWM signal is also used as
  *  input for the optocoupler.
  */
 void change_duty_led_v(uint8_t duty)

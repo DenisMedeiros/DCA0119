@@ -14,8 +14,11 @@ extern volatile circular_buffer USART_tx_buffer;
 extern volatile uint8_t system_running;
 extern volatile uint8_t sensor_value;
 
+/* Configure the ADC. */
 void adc_init(void);
+/* Start the ADC. */
 void adc_start(void);
+/* Stop the ADC. */
 void adc_stop(void);
 
 #endif /* ADC_H_ */

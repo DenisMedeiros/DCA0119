@@ -16,12 +16,18 @@
 #define SYSTEM_MODE_1_TIME 180
 #define SYSTEM_MODE_2_TIME 60
 
+/* Buffer for USART transmission (sending). */
 volatile circular_buffer USART_tx_buffer;
+/* Buffer for USART transmission (receiving). */
 volatile circular_buffer USART_rx_buffer;
+/* Number of overflows of counter 0 (used to count seconds). */
 volatile uint32_t ticks = 0;
+/* Used to sent data to SCD by USART. */
 volatile char t_s[4], x_s[4], v_s[4];
 
+/* Saves the state of the system (0 = stopped; 1 = running). */
 volatile uint8_t system_running = 0;
+/* Current value from sensor (comes from ADC; can be from 0 to 255). */
 volatile uint8_t sensor_value = 0;
 volatile uint8_t total_time_running = 0;
 volatile uint8_t system_mode = 1;
@@ -44,7 +50,7 @@ void system_init(void)
 	adc_init(); 
 }
 
-
+/* Start the system. */
 void system_start(void)
 {
 	system_running = 1;
@@ -57,12 +63,9 @@ void system_start(void)
 	
 	/* Start the ADC. */
 	adc_start();
-	
-	/* Inform to SCD that the system is running. */
-	//buffer_add(&USART_tx_buffer, '+');
-	//USART_enable_tx_interrupt();
 }
 
+/* Stop the system. */
 void system_stop(void)
 {
 	system_running = 0;
@@ -81,13 +84,9 @@ void system_stop(void)
 	
 	/* Stop the ADC. */
 	adc_stop();
-
-	/* Inform to SCD that the system is stopped. */
-	//buffer_add(&USART_tx_buffer, '-');
-	//USART_enable_tx_interrupt();
 }
 
-
+/* Define how the dryer is going to work (default mode, needs 3 minutes). */
 uint8_t dryer_mode1(uint8_t time)
 {
 	float result_float = 0;
@@ -100,7 +99,6 @@ uint8_t dryer_mode1(uint8_t time)
 	else if(time > 30 && time <= 60)
 	{
 		result_int = 30;
-		
 	}
 	else if(time > 60 && time <= 90)
 	{
@@ -124,26 +122,30 @@ uint8_t dryer_mode1(uint8_t time)
 	return result_int;
 }
 
+/* Define how the dryer is going to work (fast mode, needs 1 minute). */
 uint8_t dryer_mode2(uint8_t time)
 {
-	//float result_float = 0;
+	float result_float = 0;
 	uint8_t result_int = 0;
 	
-	if(time <= 20)
+	if(time <= 10)
 	{
-		result_int = 3*time;
+		result_int = 10*time;
 	}
-	else if(time > 20 && time < 40) 
+	else if(time > 10 && time < 50) 
 	{
-		result_int = 60;
+		result_int = 100;
 	}
-	else {
-		result_int = 20;
+	else 
+	{
+		result_float = -10 * time + 600;
+		result_int = roundf(result_float);
 	}
 	
 	return result_int;
 }
 
+/* This function changes the operation mode of the dryer. */
 void system_change_mode(uint8_t mode)
 {
 	if (system_running)
@@ -154,6 +156,7 @@ void system_change_mode(uint8_t mode)
 	system_mode = mode;
 }
 
+/* Return the current value of the PWN FAN based on the mode. */
 uint8_t dryer_value(uint8_t time)
 {
 	if(system_mode == 1)
@@ -170,6 +173,7 @@ uint8_t dryer_value(uint8_t time)
 	}
 }
 
+/* Return the total time that the system must run depending on the mode. */
 uint8_t dryer_total_time()
 {
 	if (system_mode == 1)

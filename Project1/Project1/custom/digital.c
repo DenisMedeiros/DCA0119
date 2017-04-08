@@ -10,12 +10,6 @@
 
 #include <avr/interrupt.h>
 
-/*
- * PD0 - pull up button (interrupt)
- * PD1 - led red = x(t)
- * PD2 - led blue = v(t) 
- * PD3 - led yellow = key
- */
 void digital_init(void)
 {
 	/* Set PB0 as output (used for showing when the system is running). */
@@ -39,9 +33,8 @@ ISR(INT0_vect)
 	if(!system_running)
 	{
 		system_start();
+		return;
 	}
-	else
-	{
-		system_stop();
-	}
+	
+	system_stop();
 }

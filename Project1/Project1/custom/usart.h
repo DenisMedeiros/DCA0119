@@ -10,7 +10,7 @@
 
 #define F_CPU 16000000UL /* CPU clock */
 #define BAUD 9600
-#define BAUD_PRESCALLER (((F_CPU / (BAUD * 16UL))) - 1)    //The formula that does all the required maths
+#define BAUD_PRESCALLER (((F_CPU / (BAUD * 16UL))) - 1)  /* The formula that does all the required maths. */
 
 /* BUFFER_SIZE must be power of 2 */
 #define BUFFER_SIZE   64
@@ -25,13 +25,16 @@ typedef struct
     volatile uint8_t tail_pos;
 } circular_buffer;
 
-/* USART functions */
+/* Configure the USART. */
 void USART_init(void);
+
+/* All these functions works with polling (slow). */
 void USART_send_byte(char data);
 void USART_send_string(char* string);
 char USART_receive_byte (void);
-void USART_enable_tx_interrupt(void);
 
+/* Enable the transmission interrupt of the USART. */
+void USART_enable_tx_interrupt(void);
 
 /* Circular buffer functions */
 char buffer_add(volatile circular_buffer* buffer, char c);
