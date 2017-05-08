@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import threading
+from Queue import Queue
 import time
 import mraa
 
@@ -33,24 +34,43 @@ threads = {}
 sensor_value = 0
 system_running = False
 
+
+class ADCThread(threading.Thread):
+
+    def __init__(self):
+        super(ADCThread, self).__init__()
+        self._stop = threading.Event()
+
+    def stop(self):
+        self._stop.set()
+
+    def stopped(self):
+        return self._stop.isSet()
+        
+    def run(self):    
+        while True:
+            sensor_value = adc.read()
+            print 'Value read by ADC = %f' %sensor_value
+            time.sleep(1)
+            if self.stopped():
+                exit()
+
 def button_pressed(pin):
 
     global system_runing
     print system_runing
     
     if system_runing:
-        print '[button] stopping system...'
         stop()
         return
     
-    print '[button] starting system...'
     start()
             
     
 def sensor_worker():
     while True:
+        print 'trhead system running ', system_running
         time.sleep(1)
-        print system_running
         if system_running:
             sensor_value = adc.read()
             print 'Value read by ADC = %f' %sensor_value
@@ -104,8 +124,11 @@ def start():
     global system_runing
     system_runing = True
     
+    print '[info] Starting the system...'
+    
     # Start ADC thread.
-    threads['adc'] = threading.Thread(target=sensor_worker)
+    #threads['adc'] = threading.Thread(target=sensor_worker)
+    threads['adc'] = ADCThread()
     threads['adc'].setDaemon(True)
     threads['adc'].start()
     
@@ -115,8 +138,9 @@ def stop():
     global system_runing
     system_runing = False
     
-    threads['adc'].stop()
+    print '[info] Stopping the system...'
     
+    threads['adc'].stop()
     led_system.write(0)
     
     
