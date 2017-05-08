@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import threading
-from Queue import Queue
 import time
 import mraa
 
@@ -19,22 +18,6 @@ LED_SENSOR_PWM_PIN = 5
 LED_DRYER_PWM_PIN = 6 
 LED_SYSTEM_PIN = 7 
 
-# Objects to access GPIO pins.
-
-button = None
-led_sensor = None
-led_dryer = None
-led_system = None
-adc = None
-
-threads = {}
-
-# Important values.
-
-sensor_value = 0
-system_running = False
-
-
 class ADCThread(threading.Thread):
 
     def __init__(self):
@@ -49,108 +32,92 @@ class ADCThread(threading.Thread):
         
     def run(self):    
         while True:
-            sensor_value = adc.read()
+            sensor_value = system.get_adc_value()
             print 'Value read by ADC = %f' %sensor_value
             time.sleep(1)
             if self.stopped():
                 exit()
-
+         
+     
 def button_pressed(pin):
-
-    global system_runing
-    print system_runing
-    
-    if system_runing:
-        stop()
+    if system.running:
+        system.stop()
         return
     
-    start()
-            
+    system.start()          
+                
+class System:
+  
+    def control_worker():
+        pass
+        
+    def pwm_worker():
+        pass
+        
+    def network_worker():
+        pass
+
+    def worker(num):
+        """thread worker function"""
+        print 'Worker: %s' % num
+        return
+        
+    def get_adc_value(self):
+        return self.adc.read()
+
+    def __init__(self):
     
-def sensor_worker():
-    while True:
-        print 'trhead system running ', system_running
-        time.sleep(1)
-        if system_running:
-            sensor_value = adc.read()
-            print 'Value read by ADC = %f' %sensor_value
+        # Important variables.
+        self.threads = {}
+        self.running = False
+        self.sensor_value = 0
+        
+        # Configure the digital output for the LED 3.     
+        self.led_system = mraa.Gpio(LED_SYSTEM_PIN) 
+        self.led_system.dir(mraa.DIR_OUT)   
 
-def control_worker():
-    pass
-    
-def pwm_worker():
-    pass
-    
-def network_worker():
-    pass
+        # Configures the PWM generators (LEDs and dryer).
+        self.led_sensor = mraa.Pwm(LED_SENSOR_PWM_PIN)
+        #led_sensor.period_ms(100)
+        #led_sensor.enable(True)
 
-def worker(num):
-    """thread worker function"""
-    print 'Worker: %s' % num
-    return
+        self.led_dryer = mraa.Pwm(LED_DRYER_PWM_PIN)
+        #led_sensor.period_ms(0)
+        #led_sensor.enable(True)
 
-def config():
+        # Configures the Hi-Z button.
+        self.button = mraa.Gpio(BUTTON_PULLUP_PIN) 
+        self.button.dir(mraa.DIR_IN)        
+        self.button.mode(mraa.MODE_PULLUP)
+        self.button.isr(mraa.EDGE_FALLING, button_pressed, self.button)   
 
-    global button
-    global led_sensor
-    global led_dryer
-    global led_system
-    global adc
-
-    # Configure the digital output for the LED 3.     
-    led_system = mraa.Gpio(LED_SYSTEM_PIN) 
-    led_system.dir(mraa.DIR_OUT)   
-
-    # Configures the PWM generators (LEDs and dryer).
-    led_sensor = mraa.Pwm(LED_SENSOR_PWM_PIN)
-    #led_sensor.period_ms(100)
-    #led_sensor.enable(True)
-
-    led_dryer = mraa.Pwm(LED_DRYER_PWM_PIN)
-    #led_sensor.period_ms(0)
-    #led_sensor.enable(True)
-
-    # Configures the Hi-Z button.
-    button = mraa.Gpio(BUTTON_PULLUP_PIN) 
-    button.dir(mraa.DIR_IN)        
-    button.mode(mraa.MODE_PULLUP)
-    button.isr(mraa.EDGE_FALLING, button_pressed, button)   
-
-    # Configures the ADC.
-    adc = mraa.Aio(SENSOR_ADC_PIN)
+        # Configures the ADC.
+        self.adc = mraa.Aio(SENSOR_ADC_PIN)
         
 
-def start():
-    global system_runing
-    system_runing = True
+    def start(self):
+        print '[info] Starting the system...'
+        self.running = True
+        
+        # Start ADC thread.
+        self.threads['adc'] = ADCThread()
+        self.threads['adc'].setDaemon(True)
+        self.threads['adc'].start()
+        
+        self.led_system.write(1)
     
-    print '[info] Starting the system...'
+    def stop(self):
+        print '[info] Stopping the system...'
+        self.running = False
+        
+        # Stop ADC thread.
+        self.threads['adc'].stop()
+        self.led_system.write(0)
     
-    # Start ADC thread.
-    #threads['adc'] = threading.Thread(target=sensor_worker)
-    threads['adc'] = ADCThread()
-    threads['adc'].setDaemon(True)
-    threads['adc'].start()
-    
-    led_system.write(1)
-    
-def stop():
-    global system_runing
-    system_runing = False
-    
-    print '[info] Stopping the system...'
-    
-    threads['adc'].stop()
-    led_system.write(0)
-    
-    
-def start2():
-    led_system.write(1)
-     
+       
 
 if __name__ == "__main__":
-    config()
-    start()
-    while 1:
-        pass
+    system = System()
+    system.start()
+    while True: pass
  
