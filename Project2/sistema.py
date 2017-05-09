@@ -5,19 +5,14 @@ import threading
 import time
 import mraa
 
-
-# Important constants
-
-ADC_MAX_VALUE = 4096.0
-
 # Configuration.
 
 SENSOR_ADC_PIN = 0 # Used by the ADC (pin A0).
 BUTTON_PULLUP_PIN = 4 # Used by the Hi-Z button.
 
+LED_SENSOR_PWM_PIN = 5
+LED_DRYER_PWM_PIN = 6 
 LED_SYSTEM_PIN = 7 
-LED_DRYER_PWM_PIN = 5 
-LED_SENSOR_PWM_PIN = 6
 
 # Handles button interruption on falling edge.   
 def button_pressed(pin):
@@ -47,27 +42,7 @@ class ADCThread(threading.Thread):
            if self.stopped():
                 exit()  
            system.update_sensor_value()
-           time.sleep(1)
-
-                  
-class NetworkThread(threading.Thread):
-
-    def __init__(self):
-        super(NetworkThread, self).__init__()
-        self._stop = threading.Event()
-
-    def stop(self):
-        self._stop.set()
-
-    def stopped(self):
-        return self._stop.isSet()
-        
-    def run(self):    
-        while True:
-           if self.stopped():
-                exit()  
-           system.update_sensor_value()
-           time.sleep(1)  
+           time.sleep(0.1)
 
 ''' 
 Function that controls the PWM signal.
@@ -84,19 +59,23 @@ class PWMThread(threading.Thread):
     def stopped(self):
         return self._stop.isSet()
         
-    def run(self):    
+    def run(self):   
+        counter = 0 
         while True:
             if self.stopped():
                 exit()
             
-            sensor_value = system.sensor_value
+            # Changes the duty cycle of both PWM signals.
+            system.set_sensor_pwm_duty()
+
+            if counter > 9:
+                system.set_dryer_pwm_duty()
+                counter = 0
             
-            
-            time.sleep(1) 
+            counter += 1
+            time.sleep(0.1) 
             
                   
-         
-         
 ''' 
 Function that controls the curve signal.
 '''          
@@ -120,47 +99,51 @@ class ControlThread(threading.Thread):
                 system.stop()
                 exit()  
             
-           system.spend_time()
-           if system.mode == 1:
-               pwm_duty = system.dryer_mode1()
-               system.set_sensor_pwm_duty(system.sensor_value/100.0)
-               system.set_dryer_pwm_duty(pwm_duty/100.0)
-           elif system.mode == 2:
-               pwm_duty = system.dryer_mode2()
-               
-           
+           current_time = system.spend_time()
+           system.calculate_pwm_dryer()
            time.sleep(1)  
                 
-                
-class System:
-  
-    def control_worker():
-        pass
-        
-    def pwm_worker():
-        pass
-        
-    def network_worker():
-        pass
 
-    def worker(num):
-        """thread worker function"""
-        print 'Worker: %s' % num
-        return
+
+class NetworkThread(threading.Thread):
+
+    def __init__(self):
+        super(NetworkThread, self).__init__()
+        self._stop = threading.Event()
+
+    def stop(self):
+        self._stop.set()
+
+    def stopped(self):
+        return self._stop.isSet()
         
+    def run(self):    
+        while True:
+           if self.stopped():
+                exit()  
+           system.update_sensor_value()
+           time.sleep(1)  
+
+
+class System:
+          
     def update_sensor_value(self):
         self.sensor_value = int(100 * (self.adc.read() / 1024.0))
-        print '[adc] Current value: %d %%' %self.sensor_value 
+
+    def set_sensor_pwm_duty(self):
+        self.led_sensor.write(self.sensor_value/100.0)
+        print '[pwm] Sensor PWM: %d %%' %self.sensor_value
+        
+    def set_dryer_pwm_duty(self):
+        self.led_dryer.write(self.pwm_dryer/100.0)
+        print '[pwm] Dryer PWM: %d %%' %self.pwm_dryer
+        
     
-    ''' duty must be between 0 and 1. '''
-    def set_sensor_pwm_duty(self, duty):
-        print '[pwm] Sensor PWM: %d' %duty
-        self.led_sensor.write(duty)
-    
-    ''' duty must be between 0 and 1. '''  
-    def set_dryer_pwm_duty(self, duty):
-        print '[pwm] Dryer PWM: %d' %duty
-        self.led_dryer.write(duty)
+    def calculate_pwm_dryer(self):
+       if self.mode == 1:
+           self.pwm_dryer = system.dryer_mode1()
+       elif self.mode == 2:
+           self.pwm_dryer = system.dryer_mode2()
 
     def __init__(self):
     
@@ -170,6 +153,7 @@ class System:
         self.sensor_value = 0
         self.seconds = 0
         self.mode = 1
+        self.pwm_dryer = 0
         
         # Configure the digital output for the LED 3.     
         self.led_system = mraa.Gpio(LED_SYSTEM_PIN) 
@@ -178,11 +162,9 @@ class System:
         # Configures the PWM generators (LEDs and dryer).
         self.led_sensor = mraa.Pwm(LED_SENSOR_PWM_PIN)
         self.led_sensor.period_ms(5)
-        self.led_sensor.enable(True)
-
+         
         self.led_dryer = mraa.Pwm(LED_DRYER_PWM_PIN)
         self.led_dryer.period_ms(5)
-        self.led_dryer.enable(True)
 
         # Configures the Hi-Z button.
         self.button = mraa.Gpio(BUTTON_PULLUP_PIN) 
@@ -193,42 +175,73 @@ class System:
         # Configures the ADC.
         self.adc = mraa.Aio(SENSOR_ADC_PIN)
         
-   
-        
-
-    def start(self):
-        self.running = True
-        
+    def adc_start(self):
         # Start ADC thread.
         self.threads['adc'] = ADCThread()
         self.threads['adc'].setDaemon(True)
         self.threads['adc'].start()
         
-        # Start the control thread.
+    def adc_stop(self):
+        self.threads['adc'].stop()
+        
+    def pwm_start(self): 
+        self.led_sensor.enable(True)
+        self.led_dryer.enable(True)
+        
+        # Start the PWM thread.
+        self.threads['pwm'] = PWMThread()
+        self.threads['pwm'].setDaemon(True)
+        self.threads['pwm'].start()
+        
+    def pwm_stop(self):
+        self.led_sensor.enable(False)
+        self.led_dryer.enable(False)
+        self.threads['pwm'].stop()
+        
+    def control_start(self):
         self.threads['control'] = ControlThread()
         self.threads['control'].setDaemon(True)
         self.threads['control'].start()
         
-        self.led_system.write(1)
-
-    
-    def stop(self):
-        self.running = False
-        
-        # Stop threads.
-        self.threads['adc'].stop()
+    def control_stop(self):
         self.threads['control'].stop()
         
+   
+    def network_start(self):
+        self.threads['network'] = ControlThread()
+        self.threads['network'].setDaemon(True)
+        self.threads['network'].start()
+        
+    def network_stop(self):
+        self.threads['network'].stop()
+   
+
+    def start(self):
+        self.running = True
+        self.led_system.write(1)
+        
+        self.adc_start()
+        self.pwm_start()
+        self.control_start()
+        self.network_start()
+
+    def stop(self):
+        self.running = False
         self.led_system.write(0)
-    
-    
+        
+        self.adc_stop()
+        self.pwm_stop()
+        self.control_stop()
+        self.network_stop()
+        
+
     def spend_time(self):
         self.seconds += 1
 
      
     def dryer_mode1(self):
     
-        if self.seconds < 30:
+        if self.seconds <= 30:
             result = self.seconds
         elif self.seconds > 30 and self.seconds <= 60:
             result = 30
