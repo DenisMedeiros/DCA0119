@@ -21,10 +21,10 @@ MODE2_TIME = 60
 LIGHT_THRESHOLD = 40 # Value from 0 to 100.
 HIGH_LIGHT_WEIGHT = 0.5  # Value from 0 to 1.
 
-SDC_IP = "10.9.99.167"
-PORT = 18000
-MESSAGE = "Oi, Denis"
-
+SDC_IP = '10.9.99.167'
+SDC_PORT = 18000
+LOCAL_IP = '0.0.0.0'
+LOCAL_PORT = 20000
 
 
 
@@ -112,6 +112,7 @@ class ControlThread(threading.Thread):
                 exit()  
             
            system.calculate_pwm_dryer()
+           system.send_info_to_sdc()
            system.advance_time()
            time.sleep(1)
            
@@ -121,20 +122,42 @@ class NetworkThread(threading.Thread):
     def __init__(self):
         super(NetworkThread, self).__init__()
         self._stop = threading.Event()
-
+        self.rcv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
+        self.rcv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        
     def stop(self):
         self._stop.set()
 
     def stopped(self):
         return self._stop.isSet()
         
-    def run(self):    
+    def run(self):   
+        
+        self.rcv_sock.bind((LOCAL_IP, LOCAL_PORT))
+    
         while True:
-           if self.stopped():
+            # Reads one char (1 byte).
+            command, sender = self.rcv_sock.recvfrom(1)    
+            sender_ip = sender[0]
+            sender_port = sender[1] 
+            
+            # Received a command from the SDC.
+            if sender_ip == SDC_IP:
+                
+                if command == '+':
+                    system.start()
+                elif command == '-':
+                    system.stop()
+                elif command == '1':
+                    system.stop()
+                    system.mode = 1
+                elif command == '2':
+                    system.stop()
+                    system.mode = 2
+                
+            if self.stopped():
                 exit()  
            
-           system.send_info_to_sdc()
-           time.sleep(1)  
 
 
 class System:
@@ -144,7 +167,6 @@ class System:
 
     def set_sensor_pwm_duty(self):
         self.led_sensor.write(self.sensor_value/100.0)
-        #print '[pwm1] Sensor PWM (ADC relative value): %d %%' %self.sensor_value
         
     def set_dryer_pwm_duty(self):
         
@@ -155,8 +177,8 @@ class System:
             duty *= HIGH_LIGHT_WEIGHT
 
         self.led_dryer.write(duty/100.0) 
-        print '[pwm] Dryer PWM: %d %%' %(duty) 
-        print '[adc] Sensor value: %d %%' %(self.sensor_value)
+        #print '[pwm] Dryer PWM: %d %%' %(duty) 
+        #print '[adc] Sensor value: %d %%' %(self.sensor_value)
         
         
     def calculate_pwm_dryer(self):
@@ -198,6 +220,9 @@ class System:
         # Configures the socket.
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
         
+        # Starts the Network.
+        self.network_start()
+        
     def send_info_to_sdc(self):
         if self.running:
             status = '+'
@@ -206,7 +231,7 @@ class System:
         info = "%d;%d;%d%s" %(self.seconds, self.sensor_value, 
             self.pwm_dryer, status)
             
-        self.sock.sendto(info, (SDC_IP, PORT))
+        self.sock.sendto(info, (SDC_IP, SDC_PORT))
         
     def adc_start(self):
         # Start ADC thread.
@@ -245,6 +270,12 @@ class System:
     def network_start(self):
         self.threads['network'] = NetworkThread()
         self.threads['network'].setDaemon(True)
+        
+        
+        self.rcv_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.rcv_socket.bind(('0.0.0.0', 19000))
+        
+        
         self.threads['network'].start()
         
     def network_stop(self):
@@ -258,7 +289,7 @@ class System:
         self.adc_start()
         self.pwm_start()
         self.control_start()
-        self.network_start()
+        #self.network_start()
 
     def stop(self):
         self.running = False
@@ -271,7 +302,7 @@ class System:
         self.adc_stop()
         self.pwm_stop()
         self.control_stop()
-        self.network_stop()
+        #self.network_stop()
         
 
     def advance_time(self):
