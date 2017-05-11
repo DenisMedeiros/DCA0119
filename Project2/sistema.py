@@ -14,17 +14,19 @@ LED_SENSOR_PWM_PIN = 5
 LED_DRYER_PWM_PIN = 6 
 LED_SYSTEM_PIN = 7 
 
+MODE1_TIME = 10
+MODE2_TIME = 60
+
 # Handles button interruption on falling edge.   
 def button_pressed(pin):
+    time.sleep(0.1) # debounce delay
     if system.running:
         print '[button] The system has been stopped.' 
         system.stop()
         return
     print '[button] The system has been started.' 
-    system.start()          
-
-
-
+    system.start()     
+     
 class ADCThread(threading.Thread):
 
     def __init__(self):
@@ -95,13 +97,17 @@ class ControlThread(threading.Thread):
         current_time = 0
         while True:
             
-           if self.stopped() or current_time > 180:
-                system.stop()
+           if self.stopped():
                 exit()  
             
-           current_time = system.spend_time()
            system.calculate_pwm_dryer()
-           time.sleep(1)  
+           
+           print 'antes'
+           time.sleep(1)
+           print 'depois'  
+           
+
+           system.advance_time()
                 
 
 
@@ -132,13 +138,12 @@ class System:
 
     def set_sensor_pwm_duty(self):
         self.led_sensor.write(self.sensor_value/100.0)
-        print '[pwm] Sensor PWM: %d %%' %self.sensor_value
+        #print '[pwm] Sensor PWM: %d %%' %self.sensor_value
         
     def set_dryer_pwm_duty(self):
         self.led_dryer.write(self.pwm_dryer/100.0)
-        print '[pwm] Dryer PWM: %d %%' %self.pwm_dryer
+        #print '[pwm] Dryer PWM: %d %%' %self.pwm_dryer
         
-    
     def calculate_pwm_dryer(self):
        if self.mode == 1:
            self.pwm_dryer = system.dryer_mode1()
@@ -187,6 +192,7 @@ class System:
     def pwm_start(self): 
         self.led_sensor.enable(True)
         self.led_dryer.enable(True)
+        self.led_dryer.write(0)
         
         # Start the PWM thread.
         self.threads['pwm'] = PWMThread()
@@ -194,9 +200,10 @@ class System:
         self.threads['pwm'].start()
         
     def pwm_stop(self):
+        self.threads['pwm'].stop()
         self.led_sensor.enable(False)
         self.led_dryer.enable(False)
-        self.threads['pwm'].stop()
+        
         
     def control_start(self):
         self.threads['control'] = ControlThread()
@@ -208,7 +215,7 @@ class System:
         
    
     def network_start(self):
-        self.threads['network'] = ControlThread()
+        self.threads['network'] = NetworkThread()
         self.threads['network'].setDaemon(True)
         self.threads['network'].start()
         
@@ -227,6 +234,9 @@ class System:
 
     def stop(self):
         self.running = False
+        self.sensor_value = 0
+        self.seconds = 0
+        
         self.led_system.write(0)
         
         self.adc_stop()
@@ -235,10 +245,15 @@ class System:
         self.network_stop()
         
 
-    def spend_time(self):
+    def advance_time(self):
         self.seconds += 1
+        if self.mode == 1:
+            if self.seconds > MODE1_TIME:
+                self.stop()
+        elif self.mode == 2:
+            if self.seconds > MODE2_TIME:
+                self.stop()
 
-     
     def dryer_mode1(self):
     
         if self.seconds <= 30:
