@@ -14,8 +14,12 @@ LED_SENSOR_PWM_PIN = 5
 LED_DRYER_PWM_PIN = 6 
 LED_SYSTEM_PIN = 7 
 
-MODE1_TIME = 10
+MODE1_TIME = 180
 MODE2_TIME = 60
+
+
+LIGHT_THRESHOLD = 40 # Value from 0 to 100.
+HIGH_LIGHT_WEIGHT = 0.5  # Value from 0 to 1.
 
 # Handles button interruption on falling edge.   
 def button_pressed(pin):
@@ -101,15 +105,9 @@ class ControlThread(threading.Thread):
                 exit()  
             
            system.calculate_pwm_dryer()
-           
-           print 'antes'
-           time.sleep(1)
-           print 'depois'  
-           
-
            system.advance_time()
-                
-
+           time.sleep(1)
+           
 
 class NetworkThread(threading.Thread):
 
@@ -138,11 +136,20 @@ class System:
 
     def set_sensor_pwm_duty(self):
         self.led_sensor.write(self.sensor_value/100.0)
-        #print '[pwm] Sensor PWM: %d %%' %self.sensor_value
+        #print '[pwm1] Sensor PWM (ADC relative value): %d %%' %self.sensor_value
         
     def set_dryer_pwm_duty(self):
-        self.led_dryer.write(self.pwm_dryer/100.0)
-        #print '[pwm] Dryer PWM: %d %%' %self.pwm_dryer
+        
+        duty =  self.pwm_dryer
+        
+        # apply a weight based on sensor value.
+        if self.sensor_value > LIGHT_THRESHOLD:
+            duty *= HIGH_LIGHT_WEIGHT
+
+        self.led_dryer.write(duty/100.0) 
+        print '[pwm] Dryer PWM: %d %%' %(duty) 
+        print '[adc] Sensor value: %d %%' %(self.sensor_value)
+        
         
     def calculate_pwm_dryer(self):
        if self.mode == 1:
@@ -250,9 +257,11 @@ class System:
         if self.mode == 1:
             if self.seconds > MODE1_TIME:
                 self.stop()
+                print '[time] system has been stopped'
         elif self.mode == 2:
             if self.seconds > MODE2_TIME:
                 self.stop()
+                print '[time] system has been stopped'
 
     def dryer_mode1(self):
     
