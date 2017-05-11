@@ -78,6 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionMode1, SIGNAL(triggered(bool)), this, SLOT(setMode1()));
     connect(ui->actionMode2, SIGNAL(triggered(bool)), this, SLOT(setMode2()));
 
+
     /* Start the timer that checks if data has been received and does the plotting. */
     timer->start(TIMER_VALUE);
 
@@ -106,58 +107,6 @@ void MainWindow::about(void)
  * data and plot it. */
 void MainWindow::handleTimeout()
 {
-    int t = 0, v = 0, x = 0;
-
-    /* If the system is stopped. */
-    if(bufferedData.contains('-'))
-    {
-        seriesLine->clear();
-        seriesPoints->clear();
-        ui->lineEditTime->setText(QString("0 sec"));
-        ui->lineEditSensor->setText(QString("0 %"));
-        ui->lineEditPWM->setText(QString("0 %"));
-        QString message(QString("Connected through the port %1 | System stopped | Mode %2 ").arg(sph->getPortName(), QString::number(mode)));
-        statusMessage->setText(message);
-    } else if(bufferedData.contains('+')) /* If the system is running. */
-    {
-        QString message(QString("Connected through the port %1 | System running | Mode %2 ").arg(sph->getPortName(), QString::number(mode)));
-        statusMessage->setText(message);
-    }
-
-    /* If the system sent data about the current operation. */
-    if(dataSet.size() > 1)
-    {
-        foreach(QString data, dataSet)
-        {
-            QStringList valuesStr = data.split(";");
-            if(valuesStr.size() == 3) {
-
-                /* Handle the data. */
-
-                t = valuesStr[0].toInt();
-                x = valuesStr[1].toInt();
-                v = valuesStr[2].toInt();
-
-                /* Plot the data. */
-                seriesLine->append(t, v);
-                if(mode == 1)
-                {
-                    seriesPoints->append(t, dryer_mode1(t));
-                }
-                else
-                {
-                    seriesPoints->append(t, dryer_mode2(t));
-                }
-                ui->lineEditTime->setText(QString("%1 sec").arg(QString::number(t)));
-                ui->lineEditSensor->setText(QString("%1 %").arg(QString::number(x)));
-                ui->lineEditPWM->setText(QString("%1 %").arg(QString::number(v)));
-            }
-        }
-    }
-    else
-    {
-        //qDebug() << "System is stopped";
-    }
 
     // Restart the timer.
     timer->start(TIMER_VALUE);
@@ -167,36 +116,24 @@ void MainWindow::handleTimeout()
 
 void MainWindow::startSystem()
 {
-    if(sph->isConnected())
-    {
-        sph->writeData("+");
-    }
+    // send +
 }
 
 void MainWindow::stopSystem()
 {
-    if(sph->isConnected())
-    {
-        sph->writeData("-");
-    }
+  // send -
 }
 
 void MainWindow::setMode1()
 {
-    if(sph->isConnected())
-    {
-        sph->writeData("1");
+        // send 1
         mode = 1;
-    }
 }
 
 void MainWindow::setMode2()
 {
-    if(sph->isConnected())
-    {
-        sph->writeData("2");
+    // send 2
         mode = 2;
-    }
 }
 
 
