@@ -3,6 +3,7 @@
 
 import threading
 import time
+import socket
 import mraa
 
 # Configuration.
@@ -17,9 +18,15 @@ LED_SYSTEM_PIN = 7
 MODE1_TIME = 180
 MODE2_TIME = 60
 
-
 LIGHT_THRESHOLD = 40 # Value from 0 to 100.
 HIGH_LIGHT_WEIGHT = 0.5  # Value from 0 to 1.
+
+SDC_IP = "10.9.99.167"
+PORT = 18000
+MESSAGE = "Oi, Denis"
+
+
+
 
 # Handles button interruption on falling edge.   
 def button_pressed(pin):
@@ -125,7 +132,8 @@ class NetworkThread(threading.Thread):
         while True:
            if self.stopped():
                 exit()  
-           system.update_sensor_value()
+           
+           system.send_info_to_sdc()
            time.sleep(1)  
 
 
@@ -187,6 +195,19 @@ class System:
         # Configures the ADC.
         self.adc = mraa.Aio(SENSOR_ADC_PIN)
         
+        # Configures the socket.
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
+        
+    def send_info_to_sdc(self):
+        if self.running:
+            status = '+'
+        else:
+            status = '-'
+        info = "%d;%d;%d%s" %(self.seconds, self.sensor_value, 
+            self.pwm_dryer, status)
+            
+        self.sock.sendto(info, (SDC_IP, PORT))
+        
     def adc_start(self):
         # Start ADC thread.
         self.threads['adc'] = ADCThread()
@@ -245,6 +266,7 @@ class System:
         self.seconds = 0
         
         self.led_system.write(0)
+        system.send_info_to_sdc()
         
         self.adc_stop()
         self.pwm_stop()
