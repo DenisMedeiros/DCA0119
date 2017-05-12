@@ -48,8 +48,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->chartFrame->setLayout(layout);
 
-    //sph = new SerialPortHandler();
-
     nh = new NetworkHandler();
 
     statusMessage = new QLabel();
@@ -57,18 +55,9 @@ MainWindow::MainWindow(QWidget *parent) :
     statusMessage->setMargin(5);
     statusBar()->addWidget(statusMessage);
 
-    /*
-     * if(sph->startReadingWriting())
-    {
-        QString message(QString("Connected through the port %1 | System stopped | Mode %2 ").arg(sph->getPortName(), QString::number(mode)));
-        statusMessage->setText(message);
-    }
-    else
-    {
-        QString message(QString("Disconnected."));
-        statusMessage->setText(message);
-    }
-    */
+    QString message(QString("Listeninig to IP %1 and port %2").arg(QString(SDC_IP), QString::number(SDC_PORT)));
+    statusMessage->setText(message);
+
 
     /* Connect slots and signals */
     connect(ui->actionSCD, SIGNAL(triggered(bool)), this, SLOT(about(void)));
@@ -77,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionStop, SIGNAL(triggered(bool)), this, SLOT(stopSystem()));
     connect(ui->actionMode1, SIGNAL(triggered(bool)), this, SLOT(setMode1()));
     connect(ui->actionMode2, SIGNAL(triggered(bool)), this, SLOT(setMode2()));
-
+    connect(nh, SIGNAL(bufferHasData()), this, SLOT(handleNewData()));
 
     /* Start the timer that checks if data has been received and does the plotting. */
     timer->start(TIMER_VALUE);
@@ -113,27 +102,92 @@ void MainWindow::handleTimeout()
 
 }
 
+/* Slot is callend when data has been arrived. */
+void MainWindow::handleNewData()
+{
+    QString bufferedData = nh->getReadData().trimmed();
+    QStringList dataSet = bufferedData.split("+");
+     int t = 0, v = 0, x = 0;
+
+    /* If the system is stopped. */
+    if(bufferedData.contains('-'))
+    {
+        seriesLine->clear();
+        seriesPoints->clear();
+        ui->lineEditTime->setText(QString("0 sec"));
+        ui->lineEditSensor->setText(QString("0 %"));
+        ui->lineEditPWM->setText(QString("0 %"));
+        QString message("System has been stopped");
+        statusMessage->setText(message);
+    } else if(bufferedData.contains('+')) /* If the system is running. */
+    {
+        QString message(QString("Listeninig to IP %1 and port %2").arg(QString(SDC_IP), QString::number(SDC_PORT)));
+        statusMessage->setText(message);
+    }
+
+    /* If the system sent data about the current operation. */
+    if(dataSet.size() > 1)
+    {
+        foreach(QString data, dataSet)
+        {
+            QStringList valuesStr = data.split(";");
+            if(valuesStr.size() == 3) {
+
+                /* Handle the data. */
+
+                t = valuesStr[0].toInt();
+                x = valuesStr[1].toInt();
+                v = valuesStr[2].toInt();
+
+                /* Plot the data. */
+                seriesLine->append(t, v);
+
+                if(mode == 1)
+                {
+                    seriesPoints->append(t, dryer_mode1(t));
+                }
+                else
+                {
+                    seriesPoints->append(t, dryer_mode2(t));
+                }
+                ui->lineEditTime->setText(QString("%1 sec").arg(QString::number(t)));
+                ui->lineEditSensor->setText(QString("%1 %").arg(QString::number(x)));
+                ui->lineEditPWM->setText(QString("%1 %").arg(QString::number(v)));
+            }
+        }
+    }
+    else
+    {
+        //qDebug() << "System is stopped";
+    }
+
+}
+
 
 void MainWindow::startSystem()
 {
     // send +
+    nh->sendCommand("+");
 }
 
 void MainWindow::stopSystem()
 {
   // send -
+    nh->sendCommand("-");
 }
 
 void MainWindow::setMode1()
 {
-        // send 1
-        mode = 1;
+    // send 1
+    nh->sendCommand("1");
+    mode = 1;
 }
 
 void MainWindow::setMode2()
 {
     // send 2
-        mode = 2;
+     nh->sendCommand("2");
+     mode = 2;
 }
 
 

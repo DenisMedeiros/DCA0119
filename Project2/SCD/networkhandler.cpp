@@ -9,17 +9,11 @@ NetworkHandler::NetworkHandler(QObject *parent) : QObject(parent)
 
     // create a QUDP socket
     socket = new QUdpSocket(this);
-
-    // The most common way to use QUdpSocket class is
-    // to bind to an address and port using bind()
-    // bool QAbstractSocket::bind(const QHostAddress & address,
-    //     quint16 port = 0, BindMode mode = DefaultForPlatform)
-    socket->bind(QHostAddress::LocalHost, 8000);
+    socket->bind(QHostAddress(SDC_IP), SDC_PORT);
 
     /* Signal detect when data has been arrived. */
     connect(socket, SIGNAL(readyRead()), this, SLOT(handleReadyRead()));
-    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(handleError(QAbstractSocket::SocketError)));
-
+    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(handleError()));
 }
 
 NetworkHandler::~NetworkHandler()
@@ -39,12 +33,25 @@ const QString NetworkHandler::getReadData()
     return QString("");
 }
 
+void NetworkHandler::sendCommand(QString command)
+{
+    QByteArray datagram = command.toUtf8();
+    socket->writeDatagram(datagram, QHostAddress(GALILEO_IP), GALILEO_PORT);
+}
+
 /* Handle signal when data has been arrive. */
 void NetworkHandler::handleReadyRead()
 {
-
     do {
         readData->resize(socket->pendingDatagramSize());
         socket->readDatagram(readData->data(), readData->size());
+        buffer->reset();
+        emit bufferHasData();
     } while (socket->hasPendingDatagrams());
+}
+
+/* Handle error with the connection. */
+void NetworkHandler::handleError()
+{
+        qDebug() << QObject::tr("Error." ) << endl;
 }
