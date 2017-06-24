@@ -51,7 +51,9 @@ class ADCThread(threading.Thread):
                 exit() 
             
            # Read current temperature. 
-           system.read_sensor()
+           sensor_value = system.adc.read()
+           print sensor_value
+           #systm.sensor_value = int(100 * (self.adc.read() / 1024.0))
            time.sleep(1)
             
 ''' 
@@ -83,7 +85,7 @@ class ControlThread(threading.Thread):
            
 
 ''' 
-Function that controls the PWM buzzer signal.
+Function that controls the buzzer signal.
 '''          
 class BuzzerThread(threading.Thread):   
                          
@@ -125,9 +127,9 @@ class HotLEDThread(threading.Thread):
         while True:
             if self.stopped():
                 exit()  
-            system.hot_led.write(0)
-            time.sleep(0.5)
             system.hot_led.write(1)
+            time.sleep(0.5)
+            system.hot_led.write(0)
             time.sleep(0.5)         
 
 
@@ -166,10 +168,6 @@ class System:
 
         # Configures the ADC.
         self.adc = mraa.Aio(SENSOR_ADC_PIN)
-
-    def read_sensor(self):
-        self.sensor_value = int(100 * (self.adc.read() / 1024.0))
-        print self.sensor_value
 
     def adc_start(self):
         # Start ADC thread.
