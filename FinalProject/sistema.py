@@ -21,6 +21,9 @@ WARM_TEMPERATURE = 25
 HOT_TEMPERATURE = 27
 SERVER = 'www.dimap.ufrn.br/~denis/monitor/'
 
+ACC_TIME = 10.0 # 10 seconds to verify temperature
+NUM_VALUES = 10
+
 ''' ********** End of configuration ********** '''
 
 # Handles button interruption on falling edge.   
@@ -45,44 +48,49 @@ class ADCThread(threading.Thread):
     def stopped(self):
         return self._stop.isSet()
         
-    def run(self):    
+    def run(self):  
+
+        next_read = ACC_TIME/NUM_VALUES 
         while True:
            if self.stopped():
                 exit() 
             
            # Read current temperature. 
-           sensor_value = system.adc.read()
-           print sensor_value
-           #systm.sensor_value = int(100 * (self.adc.read() / 1024.0))
-           time.sleep(1)
-            
-''' 
-Function that controls the curve signal.
-'''          
-class ControlThread(threading.Thread):   
-                         
-    def __init__(self):
-        super(ControlThread, self).__init__()
-        self._stop = threading.Event()
+           #sensor_value = int(100 * (self.adc.read() / 1024.0))
 
-    def stop(self):
-        self._stop.set()
+           sensor_value = 29
+           system.last_temperatures.append(sensor_value)
 
-    def stopped(self):
-        return self._stop.isSet()
-        
-    def run(self):    
-        current_time = 0
-        while True:
+           # Check if it has enought values.   
+           if(len(system.last_temperatures) == NUM_VALUES):
+               # Calculate the average temperature.
+                avg_temp = 0.0
+                for temp in system.last_temperatures:
+                    avg_temp += temp
+                avg_temp /= NUM_VALUES
+                system.last_temperatures = []
+
+                # Take some decision base on average temperature.
+                if avg_temp <= 24:
+                    system.cold_led.write(1)
+                    system.warm_led.write(0)
+                    system.hot_led_stop()
+                    system.buzzer_stop()
+                elif avg_temp <= 26:
+                    system.cold_led.write(0)
+                    system.warm_led.write(1)
+                    system.hot_led_stop()
+                    system.buzzer_stop()
+                else:
+                    system.cold_led.write(0)
+                    system.warm_led.write(0)
+                    system.hot_led_start()
+                    system.buzzer_start()
+
+
+           time.sleep(next_read)
             
-           if self.stopped():
-                exit()  
-            
-           system.calculate_pwm_dryer()
-           system.send_info_to_sdc()
-           system.advance_time()
-           time.sleep(1)
-           
+
 
 ''' 
 Function that controls the buzzer signal.
@@ -140,7 +148,7 @@ class System:
         # Important variables.
         self.threads = {}
         self.running = False
-        self.sensor_value = 0
+        self.last_temperatures = []
         self.seconds = 0
         self.pwm_hot_led = 0
         
@@ -184,7 +192,8 @@ class System:
         self.threads['buzzer'].start()
   
     def buzzer_stop(self):
-        self.threads['buzzer'].stop()
+        if 'buzzer' in self.threads:
+            self.threads['buzzer'].stop()
         self.buzzer.write(1)
     
     def hot_led_start(self): 
@@ -192,8 +201,9 @@ class System:
         self.threads['hot_led'].setDaemon(True)
         self.threads['hot_led'].start()
 
-    def hot_led_stop(self): 
-        self.threads['hot_led'].stop()
+    def hot_led_stop(self):
+        if 'hot_led' in self.threads:
+            self.threads['hot_led'].stop()
         self.hot_led.write(0)
             
     def control_start(self):
@@ -211,8 +221,8 @@ class System:
     def start(self):
         self.running = True
         self.adc_start()
-        self.buzzer_start()
-        self.hot_led_start()
+        #self.buzzer_start()
+        #self.hot_led_start()
 
         #self.pwm_start()
         #self.control_start()
