@@ -3,8 +3,11 @@
 
 import threading
 import time
-import socket
 import mraa
+import datetime
+import requests
+import smtplib
+
 
 ''' ********** Configuration ********** '''
 
@@ -19,10 +22,24 @@ BUTTON_PULLUP_PIN = 4 # Used by the Hi-Z button.
 COLD_TEMPERATURE = 23
 WARM_TEMPERATURE = 25
 HOT_TEMPERATURE = 27
-SERVER = 'www.dimap.ufrn.br/~denis/monitor/'
 
 ACC_TIME = 10.0 # 10 seconds to verify temperature
 NUM_VALUES = 10
+
+TIME_BETWEEN_EMAILS = 3600 # In seconds
+
+# Email info and website info
+
+SERVER_URL = 'server of website'
+
+ADMINS = 'list of admins emails'
+SERVER = 'mail server'
+PORT = 'port of mail server'
+EMAIL_USER = 'mail user'
+EMAIL_PASSWORD = 'mail user password'
+FROM = 'from user'
+
+from private import *
 
 ''' ********** End of configuration ********** '''
 
@@ -58,36 +75,45 @@ class ADCThread(threading.Thread):
            # Read current temperature. 
            #sensor_value = int(100 * (self.adc.read() / 1024.0))
 
-           sensor_value = 29
+           sensor_value = 30
            system.last_temperatures.append(sensor_value)
 
            # Check if it has enought values.   
            if(len(system.last_temperatures) == NUM_VALUES):
                # Calculate the average temperature.
-                avg_temp = 0.0
+                system.last_avg_temp = 0.0
                 for temp in system.last_temperatures:
-                    avg_temp += temp
-                avg_temp /= NUM_VALUES
+                    system.last_avg_temp += temp
+                system.last_avg_temp /= NUM_VALUES
                 system.last_temperatures = []
+                system.send_info_website()
 
                 # Take some decision base on average temperature.
-                if avg_temp <= 24:
+                if system.last_avg_temp <= 24:
                     system.cold_led.write(1)
                     system.warm_led.write(0)
                     system.hot_led_stop()
                     system.buzzer_stop()
-                elif avg_temp <= 26:
+                elif system.last_avg_temp <= 26:
                     system.cold_led.write(0)
                     system.warm_led.write(1)
                     system.hot_led_stop()
                     system.buzzer_stop()
                 else:
+                    system.send_email_alert()
                     system.cold_led.write(0)
                     system.warm_led.write(0)
-                    system.hot_led_start()
-                    system.buzzer_start()
-
-
+                    if 'buzzer' in system.threads:
+                        if system.threads['buzzer'].stopped():
+                            system.buzzer_start()
+                    else:
+                        system.buzzer_start()
+                    if 'hot_led' in system.threads:
+                        if system.threads['hot_led'].stopped():
+                            system.hot_led_start()
+                    else:
+                        system.hot_led_start()
+                    
            time.sleep(next_read)
             
 
@@ -115,6 +141,31 @@ class BuzzerThread(threading.Thread):
             time.sleep(0.5)
             system.buzzer.write(1)
             time.sleep(0.5)
+
+''' 
+Function that sends info to the controller.
+'''          
+class HttpThread(threading.Thread):   
+                         
+    def __init__(self):
+        super(BuzzerThread, self).__init__()
+        self._stop = threading.Event()
+
+    def stop(self):
+        self._stop.set()
+
+    def stopped(self):
+        return self._stop.isSet()
+        
+    def run(self):   
+        while True:
+            if self.stopped():
+                exit()  
+            system.buzzer.write(0)
+            time.sleep(0.5)
+            system.buzzer.write(1)
+            time.sleep(0.5)
+
 
 ''' 
 Function that controls the PWM hot LED signal.
@@ -149,8 +200,9 @@ class System:
         self.threads = {}
         self.running = False
         self.last_temperatures = []
-        self.seconds = 0
-        self.pwm_hot_led = 0
+        self.last_avg_temp = 0
+        self.messages_to_send = []
+        self.moment_last_email = datetime.datetime(1970, 1, 1)
         
         # Configure the digital outputs for cold and warm led.
         self.cold_led = mraa.Gpio(COLD_LED)
@@ -205,47 +257,71 @@ class System:
         if 'hot_led' in self.threads:
             self.threads['hot_led'].stop()
         self.hot_led.write(0)
-            
-    def control_start(self):
-        self.threads['control'] = ControlThread()
-        self.threads['control'].setDaemon(True)
-        self.threads['control'].start()
+
+    def send_info_website(self):
+        current_time = datetime.datetime.now().isoformat()
+        info = {
+            'current_time': current_time,
+            'last_avg_temp': self.last_avg_temp,
+            'time_beetween_avg': ACC_TIME,
+            'num_temperatures': NUM_VALUES,
+        }
+        try:
+            req = requests.post(SERVER_URL, data=info, timeout=1)
+            print req.status
+        except:
+            pass
+
+    def send_email_alert(self): 
+
+        # Check the last email sent.
+        now = datetime.datetime.now()
+        dif = now - self.moment_last_email
+        if dif.total_seconds() < TIME_BETWEEN_EMAILS: #  Don't send email
+            return
         
-    def control_stop(self):
-        self.threads['control'].stop()
-      
-    def network_stop(self):
-        self.threads['network'].stop()
-   
+        self.moment_last_email = now
+        current_time = now.isoformat()
+        TO = ADMINS if type(ADMINS) is list else [ADMINS]
+        SUBJECT = "DataCenterMonitor - Temperature warning"
+        TEXT = '''
+        Report generated at %s.
+        The current temperature of the datacenter is %.2f ºC
+        ''' %(current_time, self.last_avg_temp) 
+
+        # Prepare actual message
+        message = """From: %s\nTo: %s\nSubject: %s\n\n%s
+        """ % (FROM, ", ".join(TO), SUBJECT, TEXT)
+        
+        server = smtplib.SMTP(SERVER, 587)
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
+        server.login(EMAIL_USER, EMAIL_PASSWORD)
+        server.sendmail(FROM, TO, message)
+        server.close()
 
     def start(self):
         self.running = True
         self.adc_start()
-        #self.buzzer_start()
-        #self.hot_led_start()
-
-        #self.pwm_start()
-        #self.control_start()
-        #self.network_start()
 
     def stop(self):
-
-        print "system stop"
         self.running = False
-        self.sensor_value = 0
         self.adc_stop()
         self.buzzer_stop()
         self.hot_led_stop()
+        self.last_temperatures = []
+        self.last_avg_temp = 0.0
 
-
-        #self.pwm_stop()
-        #self.control_stop()
-
-
+        self.cold_led.write(0)
+        self.warm_led.write(0)
+        self.hot_led.write(0)
+        self.buzzer.write(1)
 
 if __name__ == "__main__":
     try:
         system = System()
+        print "[info] The system is configured and ready."
         while True: pass
     except KeyboardInterrupt:
         system.stop()
