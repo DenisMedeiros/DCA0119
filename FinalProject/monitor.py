@@ -7,6 +7,7 @@ import mraa
 import datetime
 import requests
 import smtplib
+import random
 
 
 ''' ********** Configuration ********** '''
@@ -75,7 +76,8 @@ class ADCThread(threading.Thread):
            # Read current temperature. 
            #sensor_value = int(100 * (self.adc.read() / 1024.0))
 
-           sensor_value = 30
+           #sensor_value = 21
+           sensor_value = random.choice(range(20,28,1))
            system.last_temperatures.append(sensor_value)
 
            # Check if it has enought values.   
@@ -236,7 +238,8 @@ class System:
         self.threads['adc'].start()
         
     def adc_stop(self):
-        self.threads['adc'].stop()
+        if 'adc' in self.threads:
+            self.threads['adc'].stop()
 
     def buzzer_start(self):
         self.threads['buzzer'] = BuzzerThread()
@@ -263,13 +266,11 @@ class System:
         info = {
             'current_time': current_time,
             'last_avg_temp': self.last_avg_temp,
-            'time_beetween_avg': ACC_TIME,
-            'num_temperatures': NUM_VALUES,
         }
         try:
-            req = requests.post(SERVER_URL, data=info, timeout=1)
-            print req.status
-        except:
+            req = requests.post(SERVER_URL, data=info, timeout=3)
+        except Exception, e:
+            print "error = ", e
             pass
 
     def send_email_alert(self): 
