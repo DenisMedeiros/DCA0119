@@ -98,9 +98,9 @@ class ADCThread(threading.Thread):
            temperature = steinhart
                       
            #sensor_value = 40 - int(40 * (system.adc.read() / 1023.0))
-           print "[info] Current temperatue = %d ÂC" %temperature
+           print "[info] Current temperatue = %d ÂºC" temperature
 
-           system.last_temperatures.append(temperature)
+           system.last_temperatures.append(sensor_value)
 
            # Check if it has enought values.   
            if(len(system.last_temperatures) == NUM_VALUES):
