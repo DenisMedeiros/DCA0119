@@ -8,7 +8,7 @@ import datetime
 import requests
 import smtplib
 import random
-
+import math
 
 ''' ********** Configuration ********** '''
 
@@ -39,6 +39,13 @@ PORT = 'port of mail server'
 EMAIL_USER = 'mail user'
 EMAIL_PASSWORD = 'mail user password'
 FROM = 'from user'
+
+# Termistor data
+
+THERMISTORNOMINAL = 10000 
+TEMPERATURENOMINAL = 25
+BCOEFFICIENT = 3950
+SERIESRESISTOR = 10000
 
 from private import *
 
@@ -74,10 +81,25 @@ class ADCThread(threading.Thread):
                 exit() 
             
            # Read current temperature. 
-           #sensor_value = int(100 * (self.adc.read() / 1024.0))
+           #sensor_value = 100 - int(100 * (system.adc.read() / 1023.0))
 
-           #sensor_value = 21
-           sensor_value = random.choice(range(20,28,1))
+           sensor_value = system.adc.read() 
+           relative_value = 1023.0 / sensor_value - 1;
+           resistence_value = SERIESRESISTOR / relative_value;
+
+           # Steinhart-Hart equation
+           steinhart = resistence_value / THERMISTORNOMINAL
+           steinhart = math.log(steinhart)
+           steinhart /= BCOEFFICIENT
+           steinhart += 1.0 / (TEMPERATURENOMINAL + 273.15)
+           steinhart = 1.0 / steinhart
+           steinhart -= 273.15;  
+
+           temperature = steinhart
+                      
+           #sensor_value = 40 - int(40 * (system.adc.read() / 1023.0))
+           #print "[info] Current temperatue = %d ºC" %sensor_value
+
            system.last_temperatures.append(sensor_value)
 
            # Check if it has enought values.   
@@ -88,21 +110,21 @@ class ADCThread(threading.Thread):
                     system.last_avg_temp += temp
                 system.last_avg_temp /= NUM_VALUES
                 system.last_temperatures = []
-                system.send_info_website()
+                #system.send_info_website()
 
                 # Take some decision base on average temperature.
-                if system.last_avg_temp <= 24:
+                if system.last_avg_temp < 24:
                     system.cold_led.write(1)
                     system.warm_led.write(0)
                     system.hot_led_stop()
                     system.buzzer_stop()
-                elif system.last_avg_temp <= 26:
+                elif system.last_avg_temp < 26:
                     system.cold_led.write(0)
                     system.warm_led.write(1)
                     system.hot_led_stop()
                     system.buzzer_stop()
                 else:
-                    system.send_email_alert()
+                    #system.send_email_alert()
                     system.cold_led.write(0)
                     system.warm_led.write(0)
                     if 'buzzer' in system.threads:
