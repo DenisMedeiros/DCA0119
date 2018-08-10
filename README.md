@@ -1,6 +1,6 @@
-## DCA0119
+## Digital Systems projects
 
-### Project 1 - Dryer using Atmega 328p.
+### Project 1 - Dryer using microcontroller Atmega 328p.
 
 * Schematic
 
@@ -10,11 +10,12 @@ Youtube video with a demonstration of the project (in Brazilian Portuguese):
 
 [![video](https://img.youtube.com/vi/pO7yiydMlY8/0.jpg)](https://www.youtube.com/watch?v=pO7yiydMlY8)
 
-
 ### Project 2 - Dryer using Intel Galileo Gen 2
 
-To be described...
+* Schematic
 
-### Project 3 - Dryer using Altera FPGA
+![schematic](https://i.imgur.com/8OmnEd5.png)
+
+### Project 3 - Dryer using Altera FPGA Cyclone IV
 
 To be described...
