@@ -11,10 +11,10 @@ Youtube video with a demonstration of the project (in Brazilian Portuguese):
 [![video](https://img.youtube.com/vi/pO7yiydMlY8/0.jpg)](https://www.youtube.com/watch?v=pO7yiydMlY8)
 
 
-### Project 2 - TBA
+### Project 2 - Dryer using Intel Galileo Gen 2
 
-[...]
+To be described...
 
-### Project 3 - TBA
+### Project 3 - Dryer using Altera FPGA
 
-[...]
+To be described...
