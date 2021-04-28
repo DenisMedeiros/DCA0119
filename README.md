@@ -18,6 +18,10 @@ Youtube video with a demonstration of the project (in Brazilian Portuguese):
 
 ### Project 3 - Dryer using Altera FPGA Cyclone IV
 
-* No schematic at this point
+* No schematic.
 
+### Exam1 - House Humidity and Temperature Monitor
 
+![schematic](https://i.imgur.com/kWqPOPF.png)
+
+### Exam2 - 

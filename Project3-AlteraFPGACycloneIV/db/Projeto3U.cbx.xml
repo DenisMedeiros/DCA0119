@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<LOG_ROOT>
+	<PROJECT NAME="Projeto3U">
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_divide0:inst33|lpm_divide:LPM_DIVIDE_component" CBX_FILE_NAME="lpm_divide_0tp.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_mult3:inst36|lpm_mult:lpm_mult_component|multcore:mult_core|mpar_add:padder|mpar_add:sub_par_add|lpm_add_sub:adder[0]" CBX_FILE_NAME="add_sub_6ch.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_add_sub1:inst25|lpm_add_sub:LPM_ADD_SUB_component" CBX_FILE_NAME="add_sub_9ng.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_constant4:inst40|lpm_constant:LPM_CONSTANT_component" CBX_FILE_NAME="lpm_constant_6e6.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_mult1:inst24|lpm_mult:lpm_mult_component|multcore:mult_core|mpar_add:padder|lpm_add_sub:adder[0]" CBX_FILE_NAME="add_sub_nah.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_mult2:inst32|lpm_mult:lpm_mult_component|multcore:mult_core|mpar_add:padder|lpm_add_sub:adder[0]" CBX_FILE_NAME="add_sub_2ch.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_compare0:inst2|lpm_compare:LPM_COMPARE_component" CBX_FILE_NAME="cmpr_49j.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_compare6:inst39|lpm_compare:LPM_COMPARE_component" CBX_FILE_NAME="cmpr_m7j.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_constant2:inst34|lpm_constant:LPM_CONSTANT_component" CBX_FILE_NAME="lpm_constant_3g6.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_counter3:inst13|lpm_counter:LPM_COUNTER_component" CBX_FILE_NAME="cntr_cej.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_divide3:inst41|lpm_divide:LPM_DIVIDE_component" CBX_FILE_NAME="lpm_divide_psp.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_mux0:inst18|LPM_MUX:LPM_MUX_component" CBX_FILE_NAME="mux_e3e.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_constant0:inst20|lpm_constant:LPM_CONSTANT_component" CBX_FILE_NAME="lpm_constant_fh6.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_counter0:inst|lpm_counter:LPM_COUNTER_component" CBX_FILE_NAME="cntr_mij.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_counter5:inst29|lpm_counter:LPM_COUNTER_component" CBX_FILE_NAME="cntr_gkj.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_mux1:inst27|LPM_MUX:LPM_MUX_component" CBX_FILE_NAME="mux_63e.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_compare1:inst3|lpm_compare:LPM_COMPARE_component" CBX_FILE_NAME="cmpr_a9j.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_compare4:inst26|lpm_compare:LPM_COMPARE_component" CBX_FILE_NAME="cmpr_4cj.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_constant5:inst42|lpm_constant:LPM_CONSTANT_component" CBX_FILE_NAME="lpm_constant_9e6.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_counter2:inst7|lpm_counter:LPM_COUNTER_component" CBX_FILE_NAME="cntr_6gj.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_counter5:inst31|lpm_counter:LPM_COUNTER_component" CBX_FILE_NAME="cntr_gkj.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_add_sub0:inst22|lpm_add_sub:LPM_ADD_SUB_component" CBX_FILE_NAME="add_sub_aqh.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_compare5:inst35|lpm_compare:LPM_COMPARE_component" CBX_FILE_NAME="cmpr_3jg.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_counter1:inst1|lpm_counter:LPM_COUNTER_component" CBX_FILE_NAME="cntr_gkj.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_divide1:inst37|lpm_divide:LPM_DIVIDE_component" CBX_FILE_NAME="lpm_divide_dup.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_mult0:inst21|lpm_mult:lpm_mult_component|multcore:mult_core|mpar_add:padder|lpm_add_sub:adder[0]" CBX_FILE_NAME="add_sub_mah.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_counter4:inst16|lpm_counter:LPM_COUNTER_component" CBX_FILE_NAME="cntr_ucj.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_divide2:inst28|lpm_divide:LPM_DIVIDE_component" CBX_FILE_NAME="lpm_divide_nsp.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_mult3:inst36|lpm_mult:lpm_mult_component|multcore:mult_core|mpar_add:padder|lpm_add_sub:adder[0]" CBX_FILE_NAME="add_sub_2ch.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_constant1:inst23|lpm_constant:LPM_CONSTANT_component" CBX_FILE_NAME="lpm_constant_gh6.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_constant3:inst38|lpm_constant:LPM_CONSTANT_component" CBX_FILE_NAME="lpm_constant_2m6.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_compare3:inst14|lpm_compare:LPM_COMPARE_component" CBX_FILE_NAME="cmpr_o7j.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|Projeto3U|lpm_compare5:inst30|lpm_compare:LPM_COMPARE_component" CBX_FILE_NAME="cmpr_3jg.tdf"/>
+	</PROJECT>
+</LOG_ROOT>
